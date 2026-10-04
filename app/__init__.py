@@ -4,6 +4,8 @@ from .config import Config
 from .extensions import db, migrate
 from .core.errors import APIError
 from .services.routes import services_bp
+from .schedules.routes import schedules_bp
+
 
 
 def create_app(test_config=None):
@@ -18,6 +20,7 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
 
     app.register_blueprint(services_bp)
+    app.register_blueprint(schedules_bp)
 
     from .models import Establishment
 
