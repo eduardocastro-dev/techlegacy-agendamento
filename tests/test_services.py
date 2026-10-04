@@ -390,3 +390,119 @@ def test_delete_service_not_found(client, app):
     data = response.get_json()
 
     assert data["error"] == "Service not found"
+    
+def test_create_service_without_required_fields(client):
+    response = client.post(
+        "/services",
+        json={
+            "name": "Corte",
+        },
+    )
+
+    assert response.status_code == 400
+
+    data = response.get_json()
+
+    assert data["error"] == "Validation error"
+    assert "establishment_id" in data["details"]
+    assert "duration_minutes" in data["details"]
+    assert "price" in data["details"]
+
+
+def test_create_service_with_invalid_duration(client):
+    response = client.post(
+        "/services",
+        json={
+            "establishment_id": 1,
+            "name": "Corte",
+            "duration_minutes": 0,
+            "price": 50,
+        },
+    )
+
+    assert response.status_code == 400
+
+    data = response.get_json()
+
+    assert data["error"] == "Validation error"
+    assert (
+        data["details"]["duration_minutes"]
+        == "Must be greater than zero"
+    )
+
+
+def test_create_service_with_negative_price(client):
+    response = client.post(
+        "/services",
+        json={
+            "establishment_id": 1,
+            "name": "Corte",
+            "duration_minutes": 30,
+            "price": -10,
+        },
+    )
+
+    assert response.status_code == 400
+
+    data = response.get_json()
+
+    assert data["error"] == "Validation error"
+    assert (
+        data["details"]["price"]
+        == "Must be greater than or equal to zero"
+    )
+
+
+def test_list_services_without_establishment(client):
+    response = client.get("/services")
+
+    assert response.status_code == 400
+
+    data = response.get_json()
+
+    assert data["error"] == "Validation error"
+    assert (
+        data["details"]["establishment_id"]
+        == "This query parameter is required"
+    )
+
+
+def test_get_service_without_establishment(client):
+    response = client.get("/services/1")
+
+    assert response.status_code == 400
+
+    data = response.get_json()
+
+    assert data["error"] == "Validation error"
+
+
+def test_update_service_with_invalid_data(client):
+    create_response = client.post(
+        "/services",
+        json={
+            "establishment_id": 1,
+            "name": "Corte",
+            "duration_minutes": 30,
+            "price": 50,
+        },
+    )
+
+    service_id = create_response.get_json()["id"]
+
+    response = client.put(
+        f"/services/{service_id}?establishment_id=1",
+        json={
+            "duration_minutes": 0,
+        },
+    )
+
+    assert response.status_code == 400
+
+    data = response.get_json()
+
+    assert data["error"] == "Validation error"
+    assert (
+        data["details"]["duration_minutes"]
+        == "Must be greater than zero"
+    )
