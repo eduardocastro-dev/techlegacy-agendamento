@@ -1,24 +1,24 @@
-Claro. Como a API atual já possui o CRUD completo de Services, eu documentaria o docs/api.md refletindo somente o que está implementado hoje, deixando JWT, agendamento público e demais endpoints como evolução futura.
-
-Crie o arquivo:
-
-docs/api.md
-
-com este conteúdo:
-
 # API
 
 ## 1. Visão geral
 
-A API do **TechLegacy Agendamento** é construída utilizando Flask e segue inicialmente uma abordagem REST.
+A API do **TechLegacy Agendamento** é construída utilizando Flask e segue uma abordagem REST.
 
-A API é responsável por expor operações relacionadas aos recursos do sistema e servir como camada de comunicação entre clientes e as regras de negócio da aplicação.
+A API expõe os recursos do sistema e centraliza a comunicação entre clientes e as regras de negócio da aplicação.
 
-Atualmente, o primeiro domínio disponibilizado através da API é o gerenciamento de **Services**.
+A **Fase 3 — REST API** está praticamente concluída. Atualmente estão implementados os endpoints dos seguintes domínios:
+
+- Health Check
+- Services
+- Schedules
+- Schedule Exceptions
+- Appointments
+
+A autenticação JWT e o isolamento por estabelecimento baseado no usuário autenticado ainda fazem parte da próxima fase.
 
 ---
 
-# 2. Tecnologias
+## 2. Tecnologias
 
 A API utiliza:
 
@@ -26,596 +26,1176 @@ A API utiliza:
 - Flask
 - SQLAlchemy
 - PostgreSQL
-- Flask-Migrate
+- Flask-Migrate / Alembic
 - Pytest
 - Docker
+- Docker Compose
 
 ---
 
-# 3. Base URL
+## 3. Base URL
 
-Durante o desenvolvimento local, a aplicação é executada em:
+Durante o desenvolvimento local:
 
 ```text
 http://localhost:5000
+```
 
-Portanto, os endpoints podem ser acessados através de:
+Exemplo:
 
+```text
 http://localhost:5000/services
-4. Health Check
+```
 
-O endpoint de health check permite verificar se a aplicação Flask está funcionando corretamente.
+---
 
-Endpoint
+# 4. Health Check
+
+Permite verificar se a aplicação está funcionando.
+
+### Endpoint
+
+```http
 GET /health
-Resposta
+```
+
+### Resposta
+
+```json
 {
   "status": "ok",
   "message": "TechLegacy Agendamento API is running"
 }
-Status HTTP
-200 OK
-5. Services
+```
 
-O recurso Services representa os serviços oferecidos por um estabelecimento.
+### Status
 
-Cada serviço possui informações como:
+`200 OK`
 
-Nome;
-Descrição;
-Duração;
-Preço;
-Status;
-Estabelecimento ao qual pertence.
+---
 
-A rota base é:
+# 5. Padrão de contexto do estabelecimento
 
-/services
-6. Modelo de Service
-
-Um Service possui atualmente a seguinte estrutura:
-
-Campo	Tipo	Obrigatório	Descrição
-id	integer	Sim	Identificador do serviço
-establishment_id	integer	Sim	Estabelecimento proprietário
-name	string	Sim	Nome do serviço
-description	string	Não	Descrição do serviço
-duration_minutes	integer	Sim	Duração em minutos
-price	decimal	Sim	Preço do serviço
-active	boolean	Sim	Indica se o serviço está ativo
-
-Exemplo:
-
-{
-  "id": 1,
-  "establishment_id": 1,
-  "name": "Corte de cabelo",
-  "description": "Corte masculino tradicional",
-  "duration_minutes": 30,
-  "price": 45.00,
-  "active": true
-}
-7. Criar Service
-
-Cria um novo serviço para um estabelecimento.
-
-Endpoint
-POST /services
-Body
-{
-  "establishment_id": 1,
-  "name": "Corte de cabelo",
-  "description": "Corte masculino tradicional",
-  "duration_minutes": 30,
-  "price": 45.00
-}
-Campos
-establishment_id
-
-Identifica o estabelecimento ao qual o serviço pertence.
-
-Tipo:
-
-integer
-
-Obrigatório:
-
-Sim
-name
-
-Nome do serviço.
-
-Tipo:
-
-string
-
-Obrigatório:
-
-Sim
-description
-
-Descrição opcional do serviço.
-
-Tipo:
-
-string
-
-Obrigatório:
-
-Não
-duration_minutes
-
-Duração do serviço em minutos.
-
-Tipo:
-
-integer
-
-Obrigatório:
-
-Sim
-price
-
-Preço do serviço.
-
-Tipo:
-
-number
-
-Obrigatório:
-
-Sim
-Resposta
-{
-  "id": 1,
-  "establishment_id": 1,
-  "name": "Corte de cabelo",
-  "description": "Corte masculino tradicional",
-  "duration_minutes": 30,
-  "price": 45.0,
-  "active": true
-}
-Status HTTP
-201 Created
-8. Listar Services
-
-Retorna os serviços ativos de um estabelecimento.
-
-Endpoint
-GET /services?establishment_id=1
-Parâmetro
-establishment_id
-
-Identifica o estabelecimento.
-
-Tipo:
-
-integer
-
-Obrigatório:
-
-Sim
-Exemplo de resposta
-[
-  {
-    "id": 1,
-    "establishment_id": 1,
-    "name": "Corte de cabelo",
-    "description": "Corte masculino tradicional",
-    "duration_minutes": 30,
-    "price": 45.0,
-    "active": true
-  },
-  {
-    "id": 2,
-    "establishment_id": 1,
-    "name": "Barba",
-    "description": "Barba tradicional",
-    "duration_minutes": 20,
-    "price": 30.0,
-    "active": true
-  }
-]
-Status HTTP
-200 OK
-9. Buscar Service
-
-Retorna um serviço específico.
-
-Endpoint
-GET /services/<service_id>?establishment_id=1
-Exemplo
-GET /services/1?establishment_id=1
-Resposta
-{
-  "id": 1,
-  "establishment_id": 1,
-  "name": "Corte de cabelo",
-  "description": "Corte masculino tradicional",
-  "duration_minutes": 30,
-  "price": 45.0,
-  "active": true
-}
-Status HTTP
-200 OK
-10. Service não encontrado
-
-Quando o serviço não existe, não pertence ao estabelecimento informado ou está inativo, a API retorna:
-
-{
-  "error": "Service not found"
-}
-
-Status HTTP:
-
-404 Not Found
-11. Atualizar Service
-
-Atualiza um serviço existente.
-
-Endpoint
-PUT /services/<service_id>?establishment_id=1
-Exemplo
-PUT /services/1?establishment_id=1
-Body
-{
-  "name": "Corte masculino",
-  "description": "Corte masculino atualizado",
-  "duration_minutes": 40,
-  "price": 50.00
-}
-
-Todos os campos são opcionais na atualização.
-
-Isso permite realizar tanto atualizações completas quanto parciais.
-
-Atualização parcial
-
-Exemplo:
-
-{
-  "price": 55.00
-}
-
-Nesse caso, somente o preço será alterado.
-
-Resposta
-{
-  "id": 1,
-  "establishment_id": 1,
-  "name": "Corte masculino",
-  "description": "Corte masculino atualizado",
-  "duration_minutes": 40,
-  "price": 50.0,
-  "active": true
-}
-Status HTTP
-200 OK
-12. Excluir Service
-
-A exclusão de serviços utiliza soft delete.
-
-O registro não é removido fisicamente do banco de dados.
-
-Em vez disso:
-
-active = false
-
-é aplicado ao serviço.
-
-Endpoint
-DELETE /services/<service_id>?establishment_id=1
-Exemplo
-DELETE /services/1?establishment_id=1
-Resposta
-{
-  "message": "Service deactivated successfully"
-}
-Status HTTP
-200 OK
-13. Comportamento após exclusão
-
-Depois de executar:
-
-DELETE /services/1?establishment_id=1
-
-o serviço permanece armazenado no banco, porém deixa de aparecer nas consultas de serviços ativos.
+Na implementação atual, os endpoints administrativos utilizam `establishment_id` para identificar o estabelecimento.
 
 Por exemplo:
 
+```http
 GET /services?establishment_id=1
-
-não retornará mais o serviço desativado.
-
-Essa estratégia preserva o registro e evita a remoção física dos dados.
-
-14. Isolamento por estabelecimento
-
-A API foi projetada considerando o conceito de multi-tenancy.
-
-Os recursos possuem associação com:
-
-establishment_id
-
-Atualmente essa identificação ainda é informada diretamente pela requisição.
-
-Exemplo:
-
-GET /services?establishment_id=1
+```
 
 ou:
 
-PUT /services/10?establishment_id=1
-Evolução futura
+```http
+GET /appointments?establishment_id=1
+```
 
-Com a implementação da autenticação JWT, o estabelecimento deverá ser identificado através do usuário autenticado.
+Esse mecanismo é **temporário**.
+
+Na Fase 4, o contexto do estabelecimento deverá ser obtido a partir do usuário autenticado através de JWT. Dessa forma, o cliente não poderá escolher livremente o `establishment_id` da operação.
 
 Fluxo planejado:
 
+```text
 Login
-  │
-  ▼
+  |
+  v
 JWT
-  │
-  ▼
+  |
+  v
 Usuário autenticado
-  │
-  ▼
+  |
+  v
 Establishment
-  │
-  ▼
+  |
+  v
 Recursos autorizados
+```
 
-Dessa forma, o cliente não precisará enviar livremente o establishment_id para definir o contexto da operação.
+---
 
-15. Status HTTP utilizados
+# 6. Services
 
-A API utiliza códigos HTTP de acordo com o resultado da operação.
+O recurso `Services` representa os serviços oferecidos por um estabelecimento.
 
-Código	Significado	Utilização
-200	OK	Operações realizadas com sucesso
-201	Created	Criação de Service
-404	Not Found	Recurso inexistente ou indisponível
-16. Formato das respostas
+### Rota base
 
-As respostas da API utilizam JSON.
+```text
+/services
+```
 
-Exemplo:
+### Modelo
 
+| Campo | Tipo | Obrigatório | Descrição |
+|---|---|---|---|
+| id | integer | Sim | Identificador |
+| establishment_id | integer | Sim | Estabelecimento proprietário |
+| name | string | Sim | Nome |
+| description | string | Não | Descrição |
+| duration_minutes | integer | Sim | Duração em minutos |
+| price | decimal | Sim | Preço |
+| active | boolean | Sim | Indica se está ativo |
+
+### Exemplo
+
+```json
 {
   "id": 1,
+  "establishment_id": 1,
   "name": "Corte de cabelo",
+  "description": "Corte masculino tradicional",
+  "duration_minutes": 30,
+  "price": 45.0,
+  "active": true
+}
+```
+
+## 6.1 Criar Service
+
+```http
+POST /services
+```
+
+### Body
+
+```json
+{
+  "establishment_id": 1,
+  "name": "Corte de cabelo",
+  "description": "Corte masculino tradicional",
   "duration_minutes": 30,
   "price": 45.0
 }
+```
 
-Respostas de coleção utilizam arrays:
+### Resposta
 
-[
-  {
-    "id": 1,
-    "name": "Corte de cabelo"
-  },
-  {
-    "id": 2,
-    "name": "Barba"
-  }
-]
+`201 Created`
 
-Erros utilizam uma estrutura simples:
+---
 
+## 6.2 Listar Services
+
+```http
+GET /services?establishment_id=1
+```
+
+Retorna somente serviços ativos do estabelecimento.
+
+### Resposta
+
+`200 OK`
+
+---
+
+## 6.3 Buscar Service
+
+```http
+GET /services/<service_id>?establishment_id=1
+```
+
+Exemplo:
+
+```http
+GET /services/1?establishment_id=1
+```
+
+Se o serviço não existir, não pertencer ao estabelecimento ou estiver inativo:
+
+```json
 {
   "error": "Service not found"
 }
-17. Endpoints atuais
+```
 
-A API atualmente possui:
+Status:
 
-Método	Endpoint	Descrição
-GET	/health	Verifica o funcionamento da aplicação
-POST	/services	Cria um serviço
-GET	/services	Lista serviços ativos
-GET	/services/<id>	Busca um serviço
-PUT	/services/<id>	Atualiza um serviço
-DELETE	/services/<id>	Desativa um serviço
-18. Fluxo CRUD
+`404 Not Found`
 
-O fluxo completo de um Service é:
+---
 
-                 ┌───────────────┐
-                 │    CREATE     │
-                 │ POST /services│
-                 └───────┬───────┘
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │     READ      │
-                 │ GET /services │
-                 └───────┬───────┘
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │     UPDATE    │
-                 │ PUT /services │
-                 └───────┬───────┘
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │ SOFT DELETE   │
-                 │DELETE /service│
-                 └───────────────┘
-19. Testes da API
+## 6.4 Atualizar Service
 
-Os endpoints de Services possuem testes automatizados.
+```http
+PUT /services/<service_id>?establishment_id=1
+```
 
-Os testes estão localizados em:
+O endpoint aceita atualização parcial.
 
-tests/test_services.py
+Exemplo:
 
-As operações testadas incluem:
+```json
+{
+  "price": 55.0
+}
+```
 
-Criação de Service;
-Listagem;
-Busca individual;
-Serviço inexistente;
-Atualização completa;
-Atualização parcial;
-Atualização de serviço inexistente;
-Exclusão lógica;
-Serviço excluído não aparece na listagem;
-Exclusão de serviço inexistente.
+### Resposta
 
-A execução completa da suíte atualmente apresenta:
+`200 OK`
 
-17 passed
+---
 
-Comando:
+## 6.5 Excluir Service
 
-pytest -v
-20. Validação
+A exclusão utiliza **soft delete**.
 
-A API ainda possui validação básica dos dados recebidos.
+```http
+DELETE /services/<service_id>?establishment_id=1
+```
 
-Por exemplo, a criação de um Service utiliza os campos esperados no JSON:
+O registro não é removido fisicamente.
 
+Seu campo:
+
+```text
+active = false
+```
+
+é aplicado.
+
+### Resposta
+
+```json
+{
+  "message": "Service deactivated successfully"
+}
+```
+
+Status:
+
+`200 OK`
+
+Serviços desativados não aparecem na listagem de serviços ativos.
+
+---
+
+# 7. Schedules
+
+O recurso `Schedules` representa o horário padrão de funcionamento do estabelecimento por dia da semana.
+
+### Rota base
+
+```text
+/schedules
+```
+
+### Modelo
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | integer | Identificador |
+| establishment_id | integer | Estabelecimento |
+| weekday | integer | Dia da semana |
+| opening_time | time | Horário de abertura |
+| closing_time | time | Horário de fechamento |
+| active | boolean | Indica se está ativo |
+
+### Dias da semana
+
+A API utiliza o padrão do Python:
+
+| Valor | Dia |
+|---:|---|
+| 0 | Segunda-feira |
+| 1 | Terça-feira |
+| 2 | Quarta-feira |
+| 3 | Quinta-feira |
+| 4 | Sexta-feira |
+| 5 | Sábado |
+| 6 | Domingo |
+
+## 7.1 Criar Schedule
+
+```http
+POST /schedules
+```
+
+Exemplo:
+
+```json
 {
   "establishment_id": 1,
-  "name": "Corte",
-  "duration_minutes": 30,
-  "price": 45.00
+  "weekday": 0,
+  "opening_time": "08:00",
+  "closing_time": "18:00"
 }
+```
 
-A validação estruturada de payloads ainda será evoluída.
+Não é permitido criar duas agendas ativas para o mesmo estabelecimento e dia da semana.
 
-21. Melhorias planejadas
+### Status
 
-A API deverá evoluir para incluir:
+`201 Created`
 
-Autenticação
-POST /auth/register
-POST /auth/login
-Usuários
-GET /users/me
-Estabelecimentos
-GET /establishments/me
-PUT /establishments/me
-Agenda
-GET    /schedules
-POST   /schedules
-PUT    /schedules/<id>
-DELETE /schedules/<id>
-Exceções
-GET    /schedule-exceptions
-POST   /schedule-exceptions
-PUT    /schedule-exceptions/<id>
-DELETE /schedule-exceptions/<id>
-Disponibilidade
-GET /availability
-Agendamentos
-POST   /appointments
-GET    /appointments
-GET    /appointments/<id>
-PUT    /appointments/<id>
-DELETE /appointments/<id>
+---
 
-Esses endpoints fazem parte da evolução planejada e não estão implementados atualmente.
+## 7.2 Listar Schedules
 
-22. Autenticação futura
+```http
+GET /schedules?establishment_id=1
+```
 
-A autenticação da área administrativa será baseada em JWT.
+### Status
+
+`200 OK`
+
+---
+
+## 7.3 Buscar Schedule
+
+```http
+GET /schedules/<schedule_id>?establishment_id=1
+```
+
+### Status
+
+`200 OK`
+
+Caso não exista ou não pertença ao estabelecimento:
+
+`404 Not Found`
+
+---
+
+## 7.4 Atualizar Schedule
+
+```http
+PUT /schedules/<schedule_id>?establishment_id=1
+```
+
+Permite atualizar os horários e os demais campos aceitos pela validação da rota.
+
+### Status
+
+`200 OK`
+
+---
+
+## 7.5 Excluir Schedule
+
+O schedule utiliza soft delete.
+
+```http
+DELETE /schedules/<schedule_id>?establishment_id=1
+```
+
+O registro permanece no banco e é marcado como inativo.
+
+### Status
+
+`200 OK`
+
+---
+
+# 8. Schedule Exceptions
+
+O recurso `Schedule Exceptions` permite alterar o funcionamento normal do estabelecimento para uma data específica.
+
+Pode ser utilizado para:
+
+- Fechamento excepcional;
+- Abertura em horário diferente;
+- Fechamento antecipado;
+- Alteração do horário de funcionamento em uma data específica.
+
+### Rota base
+
+```text
+/schedule-exceptions
+```
+
+### Modelo
+
+| Campo | Tipo | Obrigatório | Descrição |
+|---|---|---|---|
+| id | integer | Sim | Identificador |
+| establishment_id | integer | Sim | Estabelecimento |
+| date | date | Sim | Data da exceção |
+| opening_time | time | Não | Nova abertura |
+| closing_time | time | Não | Novo fechamento |
+| closed | boolean | Sim | Indica se estará fechado |
+
+## 8.1 Criar exceção
+
+```http
+POST /schedule-exceptions
+```
+
+Exemplo de fechamento:
+
+```json
+{
+  "establishment_id": 1,
+  "date": "2026-09-28",
+  "closed": true
+}
+```
+
+Exemplo de alteração de horário:
+
+```json
+{
+  "establishment_id": 1,
+  "date": "2026-09-28",
+  "opening_time": "09:00",
+  "closing_time": "15:00",
+  "closed": false
+}
+```
+
+Não é permitido cadastrar duas exceções para o mesmo estabelecimento e data.
+
+### Status
+
+`201 Created`
+
+---
+
+## 8.2 Listar exceções
+
+```http
+GET /schedule-exceptions?establishment_id=1
+```
+
+### Status
+
+`200 OK`
+
+---
+
+## 8.3 Buscar exceção
+
+```http
+GET /schedule-exceptions/<exception_id>?establishment_id=1
+```
+
+### Status
+
+`200 OK`
+
+---
+
+## 8.4 Atualizar exceção
+
+```http
+PUT /schedule-exceptions/<exception_id>?establishment_id=1
+```
+
+A atualização considera o **estado final** da exceção.
+
+Por exemplo, uma exceção inicialmente configurada como:
+
+```json
+{
+  "closed": true
+}
+```
+
+pode ser alterada para:
+
+```json
+{
+  "closed": false,
+  "opening_time": "08:00",
+  "closing_time": "14:00"
+}
+```
+
+Quando `closed` for `false`, os horários de abertura e fechamento precisam formar um intervalo válido.
+
+### Status
+
+`200 OK`
+
+---
+
+## 8.5 Excluir exceção
+
+```http
+DELETE /schedule-exceptions/<exception_id>?establishment_id=1
+```
+
+### Status
+
+`200 OK`
+
+---
+
+# 9. Availability
+
+A disponibilidade é implementada atualmente como uma **regra de negócio interna**, utilizada pelo fluxo de agendamentos.
+
+O motor considera:
+
+1. Serviço solicitado;
+2. Estabelecimento;
+3. Dia da semana;
+4. Horário padrão;
+5. Exceção de agenda;
+6. Duração do serviço;
+7. Agendamentos existentes;
+8. Status do agendamento.
+
+A função principal é:
+
+```text
+get_available_slots()
+```
+
+O motor:
+
+- retorna `[]` quando o serviço não existe ou está inativo;
+- retorna `[]` quando não existe agenda para o dia;
+- retorna `[]` quando a data está fechada por uma exceção;
+- aplica abertura/fechamento definidos pela exceção;
+- respeita a duração do serviço;
+- não cria horários que ultrapassem o fechamento;
+- bloqueia horários que possuem conflito;
+- ignora agendamentos cancelados;
+- permite excluir um agendamento específico da verificação durante uma atualização.
+
+### Disponibilidade e agendamentos
+
+A disponibilidade ainda **não possui endpoint público próprio**.
+
+A implementação atual é utilizada internamente pelo recurso `Appointments`.
+
+---
+
+# 10. Appointments
+
+O recurso `Appointments` representa os agendamentos realizados para os serviços.
+
+### Rota base
+
+```text
+/appointments
+```
+
+### Modelo
+
+| Campo | Tipo | Obrigatório | Descrição |
+|---|---|---|---|
+| id | integer | Sim | Identificador |
+| establishment_id | integer | Sim | Estabelecimento |
+| service_id | integer | Sim | Serviço |
+| customer_name | string | Sim | Nome do cliente |
+| customer_phone | string | Sim | Telefone |
+| starts_at | datetime | Sim | Início |
+| ends_at | datetime | Sim | Fim |
+| status | string | Sim | Estado do agendamento |
+
+### Status atualmente utilizados
+
+```text
+scheduled
+cancelled
+```
+
+---
+
+## 10.1 Criar Appointment
+
+```http
+POST /appointments
+```
+
+Exemplo:
+
+```json
+{
+  "establishment_id": 1,
+  "service_id": 1,
+  "customer_name": "João Silva",
+  "customer_phone": "11999999999",
+  "starts_at": "2026-09-28T08:00:00"
+}
+```
+
+A API:
+
+1. valida o payload;
+2. verifica se o serviço existe e está ativo;
+3. calcula o horário de término com base na duração do serviço;
+4. verifica a disponibilidade;
+5. rejeita conflitos;
+6. cria o agendamento.
+
+### Sucesso
+
+`201 Created`
+
+### Horário indisponível
+
+```json
+{
+  "error": "Selected time slot is not available"
+}
+```
+
+Status:
+
+`409 Conflict`
+
+---
+
+## 10.2 Listar Appointments
+
+```http
+GET /appointments?establishment_id=1
+```
+
+Os agendamentos são retornados ordenados por `starts_at`.
+
+### Status
+
+`200 OK`
+
+---
+
+## 10.3 Buscar Appointment
+
+```http
+GET /appointments/<appointment_id>?establishment_id=1
+```
+
+### Status
+
+`200 OK`
+
+Caso não exista ou não pertença ao estabelecimento:
+
+`404 Not Found`
+
+---
+
+## 10.4 Atualizar Appointment
+
+```http
+PUT /appointments/<appointment_id>?establishment_id=1
+```
+
+Pode atualizar dados do cliente, horário e status.
+
+Exemplo:
+
+```json
+{
+  "starts_at": "2026-09-28T09:00:00"
+}
+```
+
+A API recalcula `ends_at` utilizando a duração do serviço.
+
+Quando o agendamento permanecer como `scheduled`, o novo horário passa novamente pelo motor de disponibilidade.
+
+O próprio agendamento é excluído da verificação para evitar conflito falso ao manter o mesmo horário.
+
+### Status
+
+`200 OK`
+
+### Horário indisponível
+
+`409 Conflict`
+
+---
+
+## 10.5 Cancelar Appointment
+
+O cancelamento utiliza alteração de status.
+
+```http
+DELETE /appointments/<appointment_id>?establishment_id=1
+```
+
+O registro permanece no banco e passa para:
+
+```text
+status = cancelled
+```
+
+### Resposta
+
+```json
+{
+  "message": "Appointment cancelled successfully"
+}
+```
+
+### Status
+
+`200 OK`
+
+Agendamentos cancelados deixam de bloquear horários disponíveis.
+
+---
+
+## 10.6 Reativação de Appointment
+
+Um agendamento cancelado pode ser atualizado novamente para:
+
+```text
+scheduled
+```
+
+Porém, antes da reativação, a API verifica novamente a disponibilidade.
+
+Isso impede que um agendamento cancelado seja reativado sobre um horário que já foi ocupado.
+
+---
+
+# 11. Validação
+
+Os endpoints possuem validações específicas de payload.
+
+Entre os casos tratados estão:
+
+- campos obrigatórios;
+- tipos dos campos;
+- strings vazias;
+- datas;
+- horários;
+- valores booleanos;
+- status de agendamento;
+- existência do serviço;
+- existência do recurso;
+- associação do recurso ao estabelecimento;
+- conflitos de horário.
+
+Quando ocorre erro de validação, a API utiliza uma resposta padronizada.
+
+Exemplo:
+
+```json
+{
+  "error": "Validation error",
+  "details": {
+    "customer_name": "Must not be empty"
+  }
+}
+```
+
+---
+
+# 12. Tratamento de erros
+
+A aplicação possui uma exceção específica:
+
+```text
+APIError
+```
+
+Ela permite padronizar erros da API.
+
+Exemplo:
+
+```json
+{
+  "error": "Service not found"
+}
+```
+
+Quando existem detalhes adicionais:
+
+```json
+{
+  "error": "Validation error",
+  "details": {
+    "duration_minutes": "Must be an integer"
+  }
+}
+```
+
+Também existem handlers globais para:
+
+- `400 Bad Request`
+- `404 Not Found`
+- `405 Method Not Allowed`
+
+---
+
+# 13. Status HTTP utilizados
+
+| Código | Significado | Utilização |
+|---:|---|---|
+| 200 | OK | Operações realizadas com sucesso |
+| 201 | Created | Criação de recursos |
+| 400 | Bad Request | Payload ou parâmetros inválidos |
+| 404 | Not Found | Recurso inexistente ou fora do contexto |
+| 405 | Method Not Allowed | Método HTTP não suportado |
+| 409 | Conflict | Conflito de disponibilidade |
+
+---
+
+# 14. Isolamento por estabelecimento
+
+Todos os principais recursos de negócio possuem associação com:
+
+```text
+establishment_id
+```
+
+Atualmente, esse identificador é informado diretamente na requisição.
+
+Exemplo:
+
+```http
+GET /appointments?establishment_id=1
+```
+
+A rota também verifica a associação entre o recurso e o estabelecimento.
+
+Exemplo:
+
+```http
+GET /services/10?establishment_id=1
+```
+
+Um serviço pertencente a outro estabelecimento não deve ser retornado como recurso daquele contexto.
+
+### Limitação atual
+
+Essa abordagem ainda não representa o multi-tenancy completo de um SaaS, pois o cliente pode informar o `establishment_id`.
+
+A correção será realizada na Fase 4 através de autenticação e autorização.
+
+---
+
+# 15. Testes automatizados
+
+A API possui testes automatizados utilizando Pytest.
+
+Os testes cobrem os principais fluxos dos domínios implementados.
+
+Entre os cenários protegidos estão:
+
+### Services
+
+- criação;
+- listagem;
+- busca;
+- atualização;
+- atualização parcial;
+- serviço inexistente;
+- soft delete;
+- serviço desativado não aparece na listagem.
+
+### Schedules
+
+- criação;
+- listagem;
+- atualização;
+- exclusão;
+- validação de horários;
+- prevenção de duplicidade.
+
+### Schedule Exceptions
+
+- criação;
+- listagem;
+- atualização;
+- exclusão;
+- estabelecimento fechado;
+- alteração de abertura;
+- alteração de fechamento;
+- fechamento antecipado;
+- validação do estado final.
+
+### Appointments
+
+- criação;
+- conflito de horário;
+- horário fora da agenda;
+- listagem;
+- busca;
+- cancelamento;
+- liberação do horário após cancelamento;
+- atualização mantendo o mesmo horário;
+- atualização para horário disponível;
+- atualização para horário ocupado;
+- reativação de cancelado;
+- bloqueio de reativação em horário ocupado;
+- atualização dos dados do cliente;
+- status inválido;
+- isolamento entre estabelecimentos.
+
+### Execução
+
+```powershell
+pytest -q
+```
+
+A suíte completa está passando após a conclusão das correções da API.
+
+---
+
+# 16. Endpoints atuais
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| GET | `/health` | Health Check |
+| POST | `/services` | Cria serviço |
+| GET | `/services` | Lista serviços ativos |
+| GET | `/services/<id>` | Busca serviço |
+| PUT | `/services/<id>` | Atualiza serviço |
+| DELETE | `/services/<id>` | Desativa serviço |
+| POST | `/schedules` | Cria agenda |
+| GET | `/schedules` | Lista agendas |
+| GET | `/schedules/<id>` | Busca agenda |
+| PUT | `/schedules/<id>` | Atualiza agenda |
+| DELETE | `/schedules/<id>` | Desativa agenda |
+| POST | `/schedule-exceptions` | Cria exceção |
+| GET | `/schedule-exceptions` | Lista exceções |
+| GET | `/schedule-exceptions/<id>` | Busca exceção |
+| PUT | `/schedule-exceptions/<id>` | Atualiza exceção |
+| DELETE | `/schedule-exceptions/<id>` | Remove exceção |
+| POST | `/appointments` | Cria agendamento |
+| GET | `/appointments` | Lista agendamentos |
+| GET | `/appointments/<id>` | Busca agendamento |
+| PUT | `/appointments/<id>` | Atualiza agendamento |
+| DELETE | `/appointments/<id>` | Cancela agendamento |
+
+> Os endpoints acima representam a implementação atual da API.
+
+---
+
+# 17. Fluxo de disponibilidade
+
+O fluxo de criação de um agendamento é:
+
+```text
+Cliente/API
+    |
+    v
+Validação do payload
+    |
+    v
+Serviço existe e está ativo?
+    |
+    v
+Agenda do estabelecimento
+    |
+    v
+Existe exceção para a data?
+    |
+    +---- Sim ---> Aplica exceção
+    |
+    v
+Calcula duração do serviço
+    |
+    v
+Gera horários possíveis
+    |
+    v
+Verifica conflitos
+    |
+    +---- Conflito ---> 409 Conflict
+    |
+    v
+Cria Appointment
+```
+
+Esse fluxo garante que a criação não dependa apenas de uma validação superficial do horário enviado pelo cliente.
+
+---
+
+# 18. Soft Delete
+
+O sistema utiliza soft delete em recursos nos quais o histórico deve ser preservado.
+
+Atualmente:
+
+- Services usam `active`;
+- Schedules usam `active`;
+- Appointments usam `status = cancelled`.
+
+A ideia é evitar remoções físicas desnecessárias e preservar informações que podem ser importantes para histórico e auditoria.
+
+---
+
+# 19. Autenticação futura
+
+A área administrativa será protegida futuramente por JWT.
 
 Fluxo planejado:
 
-                 ┌──────────────┐
-                 │    Login     │
-                 └──────┬───────┘
-                        │
-                        ▼
-                 ┌──────────────┐
-                 │ JWT Token    │
-                 └──────┬───────┘
-                        │
-                        ▼
-               Authorization Header
-                        │
-                        ▼
-                 ┌──────────────┐
-                 │ Protected API│
-                 └──────────────┘
-
-Exemplo futuro:
-
+```text
+┌──────────────┐
+│    Login     │
+└──────┬───────┘
+       |
+       v
+┌──────────────┐
+│ JWT Token    │
+└──────┬───────┘
+       |
+       v
 Authorization: Bearer <token>
+       |
+       v
+┌──────────────┐
+│ Protected API│
+└──────────────┘
+```
 
-A implementação dessa camada ainda não faz parte da API atual.
+Endpoints planejados:
 
-23. API pública futura
+```http
+POST /auth/register
+POST /auth/login
+GET /users/me
+GET /establishments/me
+PUT /establishments/me
+```
 
-O sistema terá posteriormente uma área pública para que clientes realizem agendamentos.
+Essa implementação pertence à **Fase 4**.
 
-O fluxo planejado será:
+---
 
+# 20. API pública futura
+
+O sistema terá posteriormente uma área pública para clientes realizarem agendamentos sem criar uma conta.
+
+Fluxo planejado:
+
+```text
 Link público
-     │
-     ▼
+     |
+     v
 Estabelecimento
-     │
-     ▼
+     |
+     v
 Serviço
-     │
-     ▼
+     |
+     v
 Data
-     │
-     ▼
+     |
+     v
 Horários disponíveis
-     │
-     ▼
+     |
+     v
 Dados do cliente
-     │
-     ▼
+     |
+     v
 Agendamento
+```
 
-O cliente final não deverá precisar criar uma conta para realizar um agendamento.
+Essa camada será implementada posteriormente, após a autenticação da área administrativa.
 
-Essa funcionalidade ainda não está implementada.
+---
 
-24. Documentação futura
+# 21. OpenAPI
 
-Conforme a API crescer, será adicionada documentação OpenAPI.
+A documentação atual é mantida em Markdown.
 
-A intenção é disponibilizar uma especificação estruturada dos endpoints, permitindo integração mais simples com:
+Conforme a API evoluir, será adicionada uma especificação OpenAPI para facilitar:
 
-Frontend;
-Aplicativos;
-Sistemas externos;
-Ferramentas de teste;
-Documentação interativa.
-25. Princípios da API
+- integração com frontend;
+- testes;
+- integração com sistemas externos;
+- geração de documentação;
+- exploração dos endpoints.
 
-A evolução da API seguirá alguns princípios:
+---
 
-Endpoints orientados a recursos;
-Uso consistente de métodos HTTP;
-Respostas JSON;
-Separação entre API e regras de negócio;
-Isolamento por estabelecimento;
-Autenticação para operações administrativas;
-Testes automatizados;
-Validação de dados;
-Compatibilidade com evolução futura;
-Evitar complexidade desnecessária.
-26. Estado atual
-Health Check             ✅
-Services CRUD            ✅
-Soft Delete              ✅
-Isolamento por tenant    🟡 Inicial
-Validação avançada       ⏳
-JWT                      ⏳
-API de Schedules         ⏳
-API de Availability      ⏳
-API de Appointments      ⏳
-API Pública              ⏳
-OpenAPI                  ⏳
-Rate Limiting            ⏳
+# 22. Evoluções futuras
 
-A API encontra-se em evolução incremental, começando pelo CRUD de Services e expandindo progressivamente para os demais domínios do sistema.
+Entre as próximas evoluções planejadas:
+
+### Fase 4
+
+- autenticação;
+- JWT;
+- usuários;
+- autorização;
+- multi-tenancy real;
+- remoção da dependência de `establishment_id` informado pelo cliente.
+
+### Fase 5
+
+- dashboard administrativo;
+- gerenciamento visual de serviços;
+- gerenciamento de agendas;
+- visão geral de agendamentos;
+- personalização básica.
+
+### Fase 6
+
+- página pública do estabelecimento;
+- seleção de serviço;
+- consulta de disponibilidade;
+- criação de agendamento;
+- confirmação via WhatsApp.
+
+### Fase 7
+
+- segurança;
+- testes adicionais;
+- tratamento de concorrência;
+- rate limiting;
+- melhoria das validações;
+- observabilidade.
+
+### Fase 8
+
+- CI/CD;
+- GitHub Actions;
+- execução automática de testes;
+- build de Docker;
+- validação antes do deploy.
+
+### Fase 9
+
+- deploy em produção;
+- servidor Contabo;
+- configuração de ambiente;
+- monitoramento;
+- backup;
+- operação do SaaS.
+
+---
+
+# 23. Princípios da API
+
+A evolução da API seguirá:
+
+- endpoints orientados a recursos;
+- uso consistente dos métodos HTTP;
+- respostas JSON;
+- separação entre API e regras de negócio;
+- isolamento por estabelecimento;
+- autenticação para operações administrativas;
+- validação de dados;
+- testes automatizados;
+- preservação de histórico quando necessário;
+- baixo acoplamento;
+- evolução incremental;
+- evitar complexidade desnecessária.
+
+---
+
+# 24. Estado atual
+
+| Componente | Estado |
+|---|---|
+| Health Check | ✅ |
+| Services CRUD | ✅ |
+| Schedules CRUD | ✅ |
+| Schedule Exceptions CRUD | ✅ |
+| Appointments CRUD | ✅ |
+| Motor de disponibilidade | ✅ |
+| Validação de payloads | ✅ |
+| Tratamento padronizado de erros | ✅ |
+| Testes automatizados | ✅ |
+| Isolamento por estabelecimento | 🟡 Inicial |
+| JWT | ⏳ |
+| Multi-tenancy real | ⏳ |
+| Dashboard | ⏳ |
+| API pública | ⏳ |
+| OpenAPI | ⏳ |
+| CI/CD | ⏳ |
+| Deploy de produção | ⏳ |
+
+A API concluiu a implementação dos principais recursos de negócio da Fase 3. O próximo grande passo é a Fase 4, na qual a identificação do estabelecimento deixará de depender diretamente dos parâmetros enviados pelo cliente e passará a ser derivada do usuário autenticado.

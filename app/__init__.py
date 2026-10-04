@@ -1,13 +1,13 @@
 from flask import Flask, jsonify
 
+from .core.errors import APIError
 from .config import Config
 from .extensions import db, migrate
-from .core.errors import APIError
+
 from .services.routes import services_bp
 from .schedules.routes import schedules_bp
-from .schedule_exceptions.routes import (schedule_exceptions_bp,)
+from .schedule_exceptions.routes import schedule_exceptions_bp
 from .appointments.routes import appointments_bp
-
 
 
 def create_app(test_config=None):

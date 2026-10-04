@@ -23,13 +23,19 @@ def validate_appointment_payload(data, partial=False):
                 errors[field] = "This field is required"
 
     if "establishment_id" in data:
-        if not isinstance(data["establishment_id"], int):
+        if (
+            not isinstance(data["establishment_id"], int)
+            or isinstance(data["establishment_id"], bool)
+        ):
             errors["establishment_id"] = (
                 "Must be an integer"
             )
 
     if "service_id" in data:
-        if not isinstance(data["service_id"], int):
+        if (
+            not isinstance(data["service_id"], int)
+            or isinstance(data["service_id"], bool)
+        ):
             errors["service_id"] = (
                 "Must be an integer"
             )

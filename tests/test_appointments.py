@@ -45,6 +45,26 @@ def create_schedule(client, establishment_id):
     assert response.status_code == 201
 
 
+def create_appointment(
+    client,
+    establishment_id,
+    service_id,
+    starts_at="2026-10-05T09:00:00",
+    customer_name="João",
+    customer_phone="11999999999",
+):
+    return client.post(
+        "/appointments",
+        json={
+            "establishment_id": establishment_id,
+            "service_id": service_id,
+            "customer_name": customer_name,
+            "customer_phone": customer_phone,
+            "starts_at": starts_at,
+        },
+    )
+
+
 def test_create_appointment(client):
     establishment = create_establishment()
     service = create_service(establishment.id)
@@ -54,15 +74,10 @@ def test_create_appointment(client):
         establishment.id,
     )
 
-    response = client.post(
-        "/appointments",
-        json={
-            "establishment_id": establishment.id,
-            "service_id": service.id,
-            "customer_name": "João",
-            "customer_phone": "11999999999",
-            "starts_at": "2026-10-05T09:00:00",
-        },
+    response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
     )
 
     assert response.status_code == 201
@@ -86,28 +101,20 @@ def test_create_appointment_occupied_slot(client):
         establishment.id,
     )
 
-    first = client.post(
-        "/appointments",
-        json={
-            "establishment_id": establishment.id,
-            "service_id": service.id,
-            "customer_name": "João",
-            "customer_phone": "11999999999",
-            "starts_at": "2026-10-05T09:00:00",
-        },
+    first = create_appointment(
+        client,
+        establishment.id,
+        service.id,
     )
 
     assert first.status_code == 201
 
-    second = client.post(
-        "/appointments",
-        json={
-            "establishment_id": establishment.id,
-            "service_id": service.id,
-            "customer_name": "Maria",
-            "customer_phone": "11888888888",
-            "starts_at": "2026-10-05T09:00:00",
-        },
+    second = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+        customer_name="Maria",
+        customer_phone="11888888888",
     )
 
     assert second.status_code == 409
@@ -129,15 +136,11 @@ def test_create_appointment_outside_schedule(client):
         establishment.id,
     )
 
-    response = client.post(
-        "/appointments",
-        json={
-            "establishment_id": establishment.id,
-            "service_id": service.id,
-            "customer_name": "João",
-            "customer_phone": "11999999999",
-            "starts_at": "2026-10-05T18:00:00",
-        },
+    response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+        starts_at="2026-10-05T18:00:00",
     )
 
     assert response.status_code == 409
@@ -152,15 +155,10 @@ def test_list_appointments(client):
         establishment.id,
     )
 
-    client.post(
-        "/appointments",
-        json={
-            "establishment_id": establishment.id,
-            "service_id": service.id,
-            "customer_name": "João",
-            "customer_phone": "11999999999",
-            "starts_at": "2026-10-05T09:00:00",
-        },
+    create_appointment(
+        client,
+        establishment.id,
+        service.id,
     )
 
     response = client.get(
@@ -185,15 +183,10 @@ def test_get_appointment(client):
         establishment.id,
     )
 
-    create_response = client.post(
-        "/appointments",
-        json={
-            "establishment_id": establishment.id,
-            "service_id": service.id,
-            "customer_name": "João",
-            "customer_phone": "11999999999",
-            "starts_at": "2026-10-05T09:00:00",
-        },
+    create_response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
     )
 
     appointment_id = (
@@ -221,15 +214,10 @@ def test_cancel_appointment_releases_slot(client):
         establishment.id,
     )
 
-    create_response = client.post(
-        "/appointments",
-        json={
-            "establishment_id": establishment.id,
-            "service_id": service.id,
-            "customer_name": "João",
-            "customer_phone": "11999999999",
-            "starts_at": "2026-10-05T09:00:00",
-        },
+    create_response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
     )
 
     appointment_id = (
@@ -250,15 +238,346 @@ def test_cancel_appointment_releases_slot(client):
 
     assert appointment.status == "cancelled"
 
-    new_response = client.post(
-        "/appointments",
+    new_response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+        customer_name="Maria",
+        customer_phone="11888888888",
+    )
+
+    assert new_response.status_code == 201
+
+
+def test_update_appointment_same_slot(client):
+    establishment = create_establishment()
+    service = create_service(establishment.id)
+
+    create_schedule(
+        client,
+        establishment.id,
+    )
+
+    create_response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+    )
+
+    appointment_id = (
+        create_response.get_json()["id"]
+    )
+
+    response = client.put(
+        f"/appointments/{appointment_id}"
+        f"?establishment_id={establishment.id}",
         json={
-            "establishment_id": establishment.id,
-            "service_id": service.id,
-            "customer_name": "Maria",
-            "customer_phone": "11888888888",
             "starts_at": "2026-10-05T09:00:00",
         },
     )
 
-    assert new_response.status_code == 201
+    assert response.status_code == 200
+
+    data = response.get_json()
+
+    assert data["id"] == appointment_id
+    assert data["starts_at"] == "2026-10-05T09:00:00"
+    assert data["ends_at"] == "2026-10-05T09:30:00"
+
+
+def test_update_appointment_to_available_slot(client):
+    establishment = create_establishment()
+    service = create_service(establishment.id)
+
+    create_schedule(
+        client,
+        establishment.id,
+    )
+
+    create_response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+    )
+
+    appointment_id = (
+        create_response.get_json()["id"]
+    )
+
+    response = client.put(
+        f"/appointments/{appointment_id}"
+        f"?establishment_id={establishment.id}",
+        json={
+            "starts_at": "2026-10-05T10:00:00",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.get_json()
+
+    assert data["starts_at"] == "2026-10-05T10:00:00"
+    assert data["ends_at"] == "2026-10-05T10:30:00"
+
+
+def test_update_appointment_to_occupied_slot(client):
+    establishment = create_establishment()
+    service = create_service(establishment.id)
+
+    create_schedule(
+        client,
+        establishment.id,
+    )
+
+    first = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+    )
+
+    assert first.status_code == 201
+
+    second = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+        starts_at="2026-10-05T10:00:00",
+        customer_name="Maria",
+        customer_phone="11888888888",
+    )
+
+    assert second.status_code == 201
+
+    second_id = second.get_json()["id"]
+
+    response = client.put(
+        f"/appointments/{second_id}"
+        f"?establishment_id={establishment.id}",
+        json={
+            "starts_at": "2026-10-05T09:00:00",
+        },
+    )
+
+    assert response.status_code == 409
+
+    data = response.get_json()
+
+    assert (
+        data["error"]
+        == "Selected time slot is not available"
+    )
+
+
+def test_cancelled_appointment_can_be_reactivated_when_slot_is_available(
+    client,
+):
+    establishment = create_establishment()
+    service = create_service(establishment.id)
+
+    create_schedule(
+        client,
+        establishment.id,
+    )
+
+    create_response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+    )
+
+    appointment_id = (
+        create_response.get_json()["id"]
+    )
+
+    cancel_response = client.delete(
+        f"/appointments/{appointment_id}"
+        f"?establishment_id={establishment.id}"
+    )
+
+    assert cancel_response.status_code == 200
+
+    response = client.put(
+        f"/appointments/{appointment_id}"
+        f"?establishment_id={establishment.id}",
+        json={
+            "status": "scheduled",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.get_json()
+
+    assert data["status"] == "scheduled"
+
+
+def test_cancelled_appointment_cannot_be_reactivated_on_occupied_slot(
+    client,
+):
+    establishment = create_establishment()
+    service = create_service(establishment.id)
+
+    create_schedule(
+        client,
+        establishment.id,
+    )
+
+    first = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+    )
+
+    assert first.status_code == 201
+
+    second = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+        starts_at="2026-10-05T10:00:00",
+        customer_name="Maria",
+        customer_phone="11888888888",
+    )
+
+    assert second.status_code == 201
+
+    second_id = second.get_json()["id"]
+
+    cancel_response = client.delete(
+        f"/appointments/{second_id}"
+        f"?establishment_id={establishment.id}"
+    )
+
+    assert cancel_response.status_code == 200
+
+    response = client.put(
+        f"/appointments/{second_id}"
+        f"?establishment_id={establishment.id}",
+        json={
+            "starts_at": "2026-10-05T09:00:00",
+            "status": "scheduled",
+        },
+    )
+
+    assert response.status_code == 409
+
+    data = response.get_json()
+
+    assert (
+        data["error"]
+        == "Selected time slot is not available"
+    )
+
+
+def test_update_appointment_customer_data(client):
+    establishment = create_establishment()
+    service = create_service(establishment.id)
+
+    create_schedule(
+        client,
+        establishment.id,
+    )
+
+    create_response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+    )
+
+    appointment_id = (
+        create_response.get_json()["id"]
+    )
+
+    response = client.put(
+        f"/appointments/{appointment_id}"
+        f"?establishment_id={establishment.id}",
+        json={
+            "customer_name": "Maria",
+            "customer_phone": "11888888888",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.get_json()
+
+    assert data["customer_name"] == "Maria"
+    assert data["customer_phone"] == "11888888888"
+
+
+def test_update_appointment_invalid_status(client):
+    establishment = create_establishment()
+    service = create_service(establishment.id)
+
+    create_schedule(
+        client,
+        establishment.id,
+    )
+
+    create_response = create_appointment(
+        client,
+        establishment.id,
+        service.id,
+    )
+
+    appointment_id = (
+        create_response.get_json()["id"]
+    )
+
+    response = client.put(
+        f"/appointments/{appointment_id}"
+        f"?establishment_id={establishment.id}",
+        json={
+            "status": "completed",
+        },
+    )
+
+    assert response.status_code == 400
+
+    data = response.get_json()
+
+    assert data["error"] == "Validation error"
+    assert (
+        data["details"]["status"]
+        == "Must be scheduled or cancelled"
+    )
+
+
+def test_appointment_isolation_between_establishments(
+    client,
+):
+    establishment_one = create_establishment()
+
+    establishment_two = Establishment(
+        name="Another Test",
+        slug="another-test",
+    )
+
+    db.session.add(establishment_two)
+    db.session.commit()
+
+    service = create_service(
+        establishment_one.id
+    )
+
+    create_schedule(
+        client,
+        establishment_one.id,
+    )
+
+    create_response = create_appointment(
+        client,
+        establishment_one.id,
+        service.id,
+    )
+
+    appointment_id = (
+        create_response.get_json()["id"]
+    )
+
+    response = client.get(
+        f"/appointments/{appointment_id}"
+        f"?establishment_id={establishment_two.id}"
+    )
+
+    assert response.status_code == 404

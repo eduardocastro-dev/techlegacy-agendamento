@@ -7,12 +7,8 @@ def get_available_slots(
     establishment_id: int,
     service_id: int,
     target_date: date,
+    exclude_appointment_id: int | None = None,
 ):
-    """
-    Retorna os horários disponíveis para um serviço
-    em uma determinada data.
-    """
-
     service = Service.query.filter_by(
         id=service_id,
         establishment_id=establishment_id,
@@ -63,12 +59,19 @@ def get_available_slots(
         closing_time,
     )
 
-    appointments = Appointment.query.filter(
+    appointments_query = Appointment.query.filter(
         Appointment.establishment_id == establishment_id,
         Appointment.starts_at < end_datetime,
         Appointment.ends_at > start_datetime,
         Appointment.status != "cancelled",
-    ).all()
+    )
+
+    if exclude_appointment_id is not None:
+        appointments_query = appointments_query.filter(
+            Appointment.id != exclude_appointment_id
+        )
+
+    appointments = appointments_query.all()
 
     slots = []
 
@@ -77,7 +80,6 @@ def get_available_slots(
     while current + timedelta(
         minutes=service_duration_minutes
     ) <= end_datetime:
-
         slot_end = current + timedelta(
             minutes=service_duration_minutes
         )

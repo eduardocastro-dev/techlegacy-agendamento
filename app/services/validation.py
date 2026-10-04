@@ -19,10 +19,11 @@ def validate_service_payload(data, partial=False):
                 errors[field] = "This field is required"
 
     if "establishment_id" in data:
-        if not isinstance(data["establishment_id"], int):
-            errors["establishment_id"] = (
-                "Must be an integer"
-            )
+        if (
+            not isinstance(data["establishment_id"], int)
+            or isinstance(data["establishment_id"], bool)
+        ):
+            errors["establishment_id"] = "Must be an integer"
 
     if "name" in data:
         if not isinstance(data["name"], str):
@@ -33,10 +34,11 @@ def validate_service_payload(data, partial=False):
     if "duration_minutes" in data:
         duration = data["duration_minutes"]
 
-        if not isinstance(duration, int):
-            errors["duration_minutes"] = (
-                "Must be an integer"
-            )
+        if (
+            not isinstance(duration, int)
+            or isinstance(duration, bool)
+        ):
+            errors["duration_minutes"] = "Must be an integer"
         elif duration <= 0:
             errors["duration_minutes"] = (
                 "Must be greater than zero"
@@ -46,9 +48,7 @@ def validate_service_payload(data, partial=False):
         price = data["price"]
 
         if not isinstance(price, (int, float)):
-            errors["price"] = (
-                "Must be a number"
-            )
+            errors["price"] = "Must be a number"
         elif price < 0:
             errors["price"] = (
                 "Must be greater than or equal to zero"

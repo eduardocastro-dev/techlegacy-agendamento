@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 def validate_schedule_payload(data, partial=False):
     if not isinstance(data, dict):
         return {
@@ -21,13 +22,19 @@ def validate_schedule_payload(data, partial=False):
                 errors[field] = "This field is required"
 
     if "establishment_id" in data:
-        if not isinstance(data["establishment_id"], int):
+        if (
+            not isinstance(data["establishment_id"], int)
+            or isinstance(data["establishment_id"], bool)
+        ):
             errors["establishment_id"] = "Must be an integer"
 
     if "weekday" in data:
         weekday = data["weekday"]
 
-        if not isinstance(weekday, int):
+        if (
+            not isinstance(weekday, int)
+            or isinstance(weekday, bool)
+        ):
             errors["weekday"] = "Must be an integer"
         elif weekday < 0 or weekday > 6:
             errors["weekday"] = (

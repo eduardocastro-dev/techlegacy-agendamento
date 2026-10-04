@@ -35,6 +35,25 @@ def parse_datetime(value):
     return datetime.fromisoformat(value)
 
 
+def is_slot_available(
+    establishment_id,
+    service_id,
+    starts_at,
+    exclude_appointment_id=None,
+):
+    available_slots = get_available_slots(
+        establishment_id=establishment_id,
+        service_id=service_id,
+        target_date=starts_at.date(),
+        exclude_appointment_id=exclude_appointment_id,
+    )
+
+    return any(
+        slot == starts_at
+        for slot in available_slots
+    )
+
+
 @appointments_bp.post("")
 def create_appointment():
     data = request.get_json(silent=True)
@@ -68,15 +87,10 @@ def create_appointment():
         minutes=service.duration_minutes
     )
 
-    available_slots = get_available_slots(
+    slot_is_available = is_slot_available(
         establishment_id=data["establishment_id"],
         service_id=data["service_id"],
-        target_date=starts_at.date(),
-    )
-
-    slot_is_available = any(
-        slot == starts_at
-        for slot in available_slots
+        starts_at=starts_at,
     )
 
     if not slot_is_available:
@@ -133,7 +147,9 @@ def list_appointments():
     ])
 
 
-@appointments_bp.get("/<int:appointment_id>")
+@appointments_bp.get(
+    "/<int:appointment_id>"
+)
 def get_appointment(appointment_id):
     establishment_id = request.args.get(
         "establishment_id",
@@ -167,7 +183,9 @@ def get_appointment(appointment_id):
     )
 
 
-@appointments_bp.put("/<int:appointment_id>")
+@appointments_bp.put(
+    "/<int:appointment_id>"
+)
 def update_appointment(appointment_id):
     establishment_id = request.args.get(
         "establishment_id",
@@ -220,78 +238,69 @@ def update_appointment(appointment_id):
             data["customer_phone"].strip()
         )
 
-    if "status" in data:
-        allowed_statuses = {
-            "scheduled",
-            "cancelled",
-        }
+    new_status = (
+        data["status"]
+        if "status" in data
+        else appointment.status
+    )
 
-        if data["status"] not in allowed_statuses:
-            raise APIError(
-                "Validation error",
-                status_code=400,
-                details={
-                    "status": (
-                        "Must be scheduled or cancelled"
-                    )
-                },
-            )
-
-        appointment.status = data["status"]
-
-    if "starts_at" in data:
-        starts_at = parse_datetime(
-            data["starts_at"]
+    if new_status not in {
+        "scheduled",
+        "cancelled",
+    }:
+        raise APIError(
+            "Validation error",
+            status_code=400,
+            details={
+                "status": (
+                    "Must be scheduled or cancelled"
+                )
+            },
         )
 
-        service = Service.query.filter_by(
-            id=appointment.service_id,
-            establishment_id=establishment_id,
-            active=True,
-        ).first()
+    new_starts_at = (
+        parse_datetime(data["starts_at"])
+        if "starts_at" in data
+        else appointment.starts_at
+    )
 
-        if not service:
-            raise APIError(
-                "Service not found",
-                status_code=404,
-            )
+    # Busca o serviço atual do agendamento.
+    service = Service.query.filter_by(
+        id=appointment.service_id,
+        establishment_id=establishment_id,
+        active=True,
+    ).first()
 
-        available_slots = get_available_slots(
+    if not service:
+        raise APIError(
+            "Service not found",
+            status_code=404,
+        )
+
+    new_ends_at = new_starts_at + timedelta(
+        minutes=service.duration_minutes
+    )
+
+    # Se o agendamento ficará como scheduled,
+    # precisamos garantir que o horário final esteja
+    # disponível.
+    if new_status == "scheduled":
+        slot_is_available = is_slot_available(
             establishment_id=establishment_id,
             service_id=appointment.service_id,
-            target_date=starts_at.date(),
+            starts_at=new_starts_at,
+            exclude_appointment_id=appointment.id,
         )
 
-        other_appointments = Appointment.query.filter(
-            Appointment.id != appointment.id,
-            Appointment.establishment_id
-            == establishment_id,
-            Appointment.starts_at
-            < starts_at + timedelta(
-                minutes=service.duration_minutes
-            ),
-            Appointment.ends_at > starts_at,
-            Appointment.status != "cancelled",
-        ).all()
-
-        has_conflict = len(other_appointments) > 0
-
-        if (
-            starts_at not in available_slots
-            or has_conflict
-        ):
+        if not slot_is_available:
             raise APIError(
                 "Selected time slot is not available",
                 status_code=409,
             )
 
-        appointment.starts_at = starts_at
-        appointment.ends_at = (
-            starts_at
-            + timedelta(
-                minutes=service.duration_minutes
-            )
-        )
+    appointment.starts_at = new_starts_at
+    appointment.ends_at = new_ends_at
+    appointment.status = new_status
 
     db.session.commit()
 
@@ -300,7 +309,9 @@ def update_appointment(appointment_id):
     )
 
 
-@appointments_bp.delete("/<int:appointment_id>")
+@appointments_bp.delete(
+    "/<int:appointment_id>"
+)
 def cancel_appointment(appointment_id):
     establishment_id = request.args.get(
         "establishment_id",

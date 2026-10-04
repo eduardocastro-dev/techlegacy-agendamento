@@ -66,9 +66,11 @@ def create_schedule_exception():
             details=errors,
         )
 
+    exception_date = parse_date(data["date"])
+
     existing_exception = ScheduleException.query.filter_by(
         establishment_id=data["establishment_id"],
-        date=parse_date(data["date"]),
+        date=exception_date,
     ).first()
 
     if existing_exception:
@@ -79,7 +81,7 @@ def create_schedule_exception():
 
     exception = ScheduleException(
         establishment_id=data["establishment_id"],
-        date=parse_date(data["date"]),
+        date=exception_date,
         opening_time=parse_time(
             data.get("opening_time")
         ),
@@ -208,10 +210,76 @@ def update_schedule_exception(exception_id):
             details=errors,
         )
 
-    new_date = parse_date(
-        data["date"]
-    ) if "date" in data else exception.date
+    # Calcula os valores finais antes de alterar a entidade.
+    #
+    # Isso é importante em atualizações parciais.
+    # Por exemplo:
+    #
+    # closed = True
+    # opening_time = None
+    # closing_time = None
+    #
+    # Se recebermos apenas {"closed": False},
+    # precisamos validar o estado final e não apenas
+    # o conteúdo enviado no payload.
 
+    new_date = (
+        parse_date(data["date"])
+        if "date" in data
+        else exception.date
+    )
+
+    new_opening_time = (
+        parse_time(data["opening_time"])
+        if "opening_time" in data
+        else exception.opening_time
+    )
+
+    new_closing_time = (
+        parse_time(data["closing_time"])
+        if "closing_time" in data
+        else exception.closing_time
+    )
+
+    new_closed = (
+        data["closed"]
+        if "closed" in data
+        else exception.closed
+    )
+
+    # Quando a exceção não está fechada, os horários
+    # de abertura e fechamento são obrigatórios.
+    if not new_closed:
+        if (
+            new_opening_time is None
+            or new_closing_time is None
+        ):
+            raise APIError(
+                "Validation error",
+                status_code=400,
+                details={
+                    "opening_time": (
+                        "Opening and closing times are "
+                        "required when closed is false"
+                    )
+                },
+            )
+
+        # Garante que o horário de fechamento seja
+        # posterior ao horário de abertura.
+        if new_opening_time >= new_closing_time:
+            raise APIError(
+                "Validation error",
+                status_code=400,
+                details={
+                    "closing_time": (
+                        "Must be later than opening_time"
+                    )
+                },
+            )
+
+    # Verifica se existe outra exceção para a mesma
+    # data e estabelecimento.
     duplicate = ScheduleException.query.filter(
         ScheduleException.id != exception.id,
         ScheduleException.establishment_id == establishment_id,
@@ -224,21 +292,12 @@ def update_schedule_exception(exception_id):
             status_code=409,
         )
 
-    if "date" in data:
-        exception.date = new_date
-
-    if "opening_time" in data:
-        exception.opening_time = parse_time(
-            data["opening_time"]
-        )
-
-    if "closing_time" in data:
-        exception.closing_time = parse_time(
-            data["closing_time"]
-        )
-
-    if "closed" in data:
-        exception.closed = data["closed"]
+    # Aplica os novos valores somente depois de todas
+    # as validações terem passado.
+    exception.date = new_date
+    exception.opening_time = new_opening_time
+    exception.closing_time = new_closing_time
+    exception.closed = new_closed
 
     db.session.commit()
 

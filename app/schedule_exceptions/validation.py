@@ -22,12 +22,15 @@ def validate_schedule_exception_payload(
             if field not in data:
                 errors[field] = "This field is required"
 
+    # establishment_id
     if "establishment_id" in data:
-        if not isinstance(data["establishment_id"], int):
-            errors["establishment_id"] = (
-                "Must be an integer"
-            )
+        if (
+            not isinstance(data["establishment_id"], int)
+            or isinstance(data["establishment_id"], bool)
+        ):
+            errors["establishment_id"] = "Must be an integer"
 
+    # date
     if "date" in data:
         value = data["date"]
 
@@ -46,6 +49,7 @@ def validate_schedule_exception_payload(
                     "Must be in YYYY-MM-DD format"
                 )
 
+    # opening_time / closing_time
     for field in ["opening_time", "closing_time"]:
         if field in data and data[field] is not None:
             value = data[field]
@@ -66,10 +70,13 @@ def validate_schedule_exception_payload(
                     "Must be in HH:MM format"
                 )
 
+    # closed
     if "closed" in data:
         if not isinstance(data["closed"], bool):
             errors["closed"] = "Must be a boolean"
 
+    # Validação dos horários quando ambos foram
+    # enviados no payload.
     if (
         "opening_time" in data
         and "closing_time" in data
@@ -93,16 +100,19 @@ def validate_schedule_exception_payload(
                 "Must be later than opening_time"
             )
 
-    closed = data.get("closed", False)
-
+    # Na criação, quando closed=False, os horários
+    # de abertura e fechamento são obrigatórios.
+    #
+    # No partial=True, a validação do estado final fica
+    # sob responsabilidade da rota, pois ela precisa
+    # considerar os valores já existentes no banco.
     if (
-        closed is False
-        and "opening_time" in data
-        and "closing_time" in data
+        not partial
+        and data.get("closed", False) is False
     ):
         if (
-            data["opening_time"] is None
-            or data["closing_time"] is None
+            data.get("opening_time") is None
+            or data.get("closing_time") is None
         ):
             errors["opening_time"] = (
                 "Opening and closing times "
