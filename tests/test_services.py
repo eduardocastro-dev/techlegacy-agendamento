@@ -1,24 +1,8 @@
-from app.extensions import db
-from app.models import Establishment
-
-
-def test_create_service(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
-
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_create_service(client, auth_headers, establishment):
     response = client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": establishment_id,
             "name": "Corte de cabelo",
             "description": "Corte masculino",
             "duration_minutes": 30,
@@ -31,30 +15,19 @@ def test_create_service(client, app):
     data = response.get_json()
 
     assert data["id"] is not None
-    assert data["establishment_id"] == establishment_id
+    assert data["establishment_id"] == establishment
     assert data["name"] == "Corte de cabelo"
     assert data["description"] == "Corte masculino"
     assert data["duration_minutes"] == 30
     assert data["price"] == 50.00
     assert data["active"] is True
 
-def test_list_services(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
 
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_list_services(client, auth_headers, establishment):
     client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": establishment_id,
             "name": "Corte de cabelo",
             "description": "Corte masculino",
             "duration_minutes": 30,
@@ -64,8 +37,8 @@ def test_list_services(client, app):
 
     client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": establishment_id,
             "name": "Barba",
             "description": "Barba completa",
             "duration_minutes": 20,
@@ -74,7 +47,8 @@ def test_list_services(client, app):
     )
 
     response = client.get(
-        f"/services?establishment_id={establishment_id}"
+        "/services",
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -91,23 +65,12 @@ def test_list_services(client, app):
     assert data[1]["duration_minutes"] == 20
     assert data[1]["price"] == 30.00
 
-def test_get_service(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
 
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_get_service(client, auth_headers, establishment):
     response = client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": establishment_id,
             "name": "Corte de cabelo",
             "description": "Corte masculino",
             "duration_minutes": 30,
@@ -120,8 +83,8 @@ def test_get_service(client, app):
     service_id = response.get_json()["id"]
 
     response = client.get(
-        f"/services/{service_id}"
-        f"?establishment_id={establishment_id}"
+        f"/services/{service_id}",
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -129,29 +92,18 @@ def test_get_service(client, app):
     data = response.get_json()
 
     assert data["id"] == service_id
-    assert data["establishment_id"] == establishment_id
+    assert data["establishment_id"] == establishment
     assert data["name"] == "Corte de cabelo"
     assert data["description"] == "Corte masculino"
     assert data["duration_minutes"] == 30
     assert data["price"] == 50.00
     assert data["active"] is True
 
-def test_get_service_not_found(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
 
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_get_service_not_found(client, auth_headers):
     response = client.get(
-        f"/services/999"
-        f"?establishment_id={establishment_id}"
+        "/services/999",
+        headers=auth_headers,
     )
 
     assert response.status_code == 404
@@ -160,23 +112,12 @@ def test_get_service_not_found(client, app):
 
     assert data["error"] == "Service not found"
 
-def test_update_service(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
 
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_update_service(client, auth_headers, establishment):
     response = client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": establishment_id,
             "name": "Corte de cabelo",
             "description": "Corte masculino",
             "duration_minutes": 30,
@@ -189,8 +130,8 @@ def test_update_service(client, app):
     service_id = response.get_json()["id"]
 
     response = client.put(
-        f"/services/{service_id}"
-        f"?establishment_id={establishment_id}",
+        f"/services/{service_id}",
+        headers=auth_headers,
         json={
             "name": "Corte masculino",
             "description": "Corte masculino completo",
@@ -204,30 +145,19 @@ def test_update_service(client, app):
     data = response.get_json()
 
     assert data["id"] == service_id
-    assert data["establishment_id"] == establishment_id
+    assert data["establishment_id"] == establishment
     assert data["name"] == "Corte masculino"
     assert data["description"] == "Corte masculino completo"
     assert data["duration_minutes"] == 40
     assert data["price"] == 60.00
     assert data["active"] is True
 
-def test_update_service_partial(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
 
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_update_service_partial(client, auth_headers):
     response = client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": establishment_id,
             "name": "Barba",
             "description": "Barba completa",
             "duration_minutes": 20,
@@ -240,8 +170,8 @@ def test_update_service_partial(client, app):
     service_id = response.get_json()["id"]
 
     response = client.put(
-        f"/services/{service_id}"
-        f"?establishment_id={establishment_id}",
+        f"/services/{service_id}",
+        headers=auth_headers,
         json={
             "price": 35.00,
         },
@@ -256,22 +186,11 @@ def test_update_service_partial(client, app):
     assert data["duration_minutes"] == 20
     assert data["price"] == 35.00
 
-def test_update_service_not_found(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
 
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_update_service_not_found(client, auth_headers):
     response = client.put(
-        f"/services/999"
-        f"?establishment_id={establishment_id}",
+        "/services/999",
+        headers=auth_headers,
         json={
             "name": "Serviço inexistente",
         },
@@ -283,23 +202,12 @@ def test_update_service_not_found(client, app):
 
     assert data["error"] == "Service not found"
 
-def test_delete_service(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
 
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_delete_service(client, auth_headers):
     response = client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": establishment_id,
             "name": "Corte de cabelo",
             "description": "Corte masculino",
             "duration_minutes": 30,
@@ -312,8 +220,8 @@ def test_delete_service(client, app):
     service_id = response.get_json()["id"]
 
     response = client.delete(
-        f"/services/{service_id}"
-        f"?establishment_id={establishment_id}"
+        f"/services/{service_id}",
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -322,23 +230,15 @@ def test_delete_service(client, app):
 
     assert data["message"] == "Service deactivated successfully"
 
-def test_deleted_service_is_not_listed(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
 
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_deleted_service_is_not_listed(
+    client,
+    auth_headers,
+):
     response = client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": establishment_id,
             "name": "Barba",
             "description": "Barba completa",
             "duration_minutes": 20,
@@ -351,14 +251,15 @@ def test_deleted_service_is_not_listed(client, app):
     service_id = response.get_json()["id"]
 
     response = client.delete(
-        f"/services/{service_id}"
-        f"?establishment_id={establishment_id}"
+        f"/services/{service_id}",
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
 
     response = client.get(
-        f"/services?establishment_id={establishment_id}"
+        "/services",
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -367,22 +268,14 @@ def test_deleted_service_is_not_listed(client, app):
 
     assert data == []
 
-def test_delete_service_not_found(client, app):
-    with app.app_context():
-        establishment = Establishment(
-            name="Estabelecimento Teste",
-            slug="estabelecimento-teste",
-            phone="11999999999",
-        )
 
-        db.session.add(establishment)
-        db.session.commit()
-
-        establishment_id = establishment.id
-
+def test_delete_service_not_found(
+    client,
+    auth_headers,
+):
     response = client.delete(
-        f"/services/999"
-        f"?establishment_id={establishment_id}"
+        "/services/999",
+        headers=auth_headers,
     )
 
     assert response.status_code == 404
@@ -390,10 +283,15 @@ def test_delete_service_not_found(client, app):
     data = response.get_json()
 
     assert data["error"] == "Service not found"
-    
-def test_create_service_without_required_fields(client):
+
+
+def test_create_service_without_required_fields(
+    client,
+    auth_headers,
+):
     response = client.post(
         "/services",
+        headers=auth_headers,
         json={
             "name": "Corte",
         },
@@ -404,16 +302,18 @@ def test_create_service_without_required_fields(client):
     data = response.get_json()
 
     assert data["error"] == "Validation error"
-    assert "establishment_id" in data["details"]
     assert "duration_minutes" in data["details"]
     assert "price" in data["details"]
 
 
-def test_create_service_with_invalid_duration(client):
+def test_create_service_with_invalid_duration(
+    client,
+    auth_headers,
+):
     response = client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": 1,
             "name": "Corte",
             "duration_minutes": 0,
             "price": 50,
@@ -425,17 +325,17 @@ def test_create_service_with_invalid_duration(client):
     data = response.get_json()
 
     assert data["error"] == "Validation error"
-    assert (
-        data["details"]["duration_minutes"]
-        == "Must be greater than zero"
-    )
+    assert data["details"]["duration_minutes"] == "Must be greater than zero"
 
 
-def test_create_service_with_negative_price(client):
+def test_create_service_with_negative_price(
+    client,
+    auth_headers,
+):
     response = client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": 1,
             "name": "Corte",
             "duration_minutes": 30,
             "price": -10,
@@ -447,51 +347,43 @@ def test_create_service_with_negative_price(client):
     data = response.get_json()
 
     assert data["error"] == "Validation error"
-    assert (
-        data["details"]["price"]
-        == "Must be greater than or equal to zero"
-    )
+    assert data["details"]["price"] == "Must be greater than or equal to zero"
 
 
-def test_list_services_without_establishment(client):
+def test_list_services_without_auth(client):
     response = client.get("/services")
 
-    assert response.status_code == 400
-
-    data = response.get_json()
-
-    assert data["error"] == "Validation error"
-    assert (
-        data["details"]["establishment_id"]
-        == "This query parameter is required"
-    )
+    assert response.status_code == 401
 
 
-def test_get_service_without_establishment(client):
+def test_get_service_without_auth(client):
     response = client.get("/services/1")
 
-    assert response.status_code == 400
-
-    data = response.get_json()
-
-    assert data["error"] == "Validation error"
+    assert response.status_code == 401
 
 
-def test_update_service_with_invalid_data(client):
+def test_update_service_with_invalid_data(
+    client,
+    auth_headers,
+):
     create_response = client.post(
         "/services",
+        headers=auth_headers,
         json={
-            "establishment_id": 1,
-            "name": "Corte",
+            "name": "Corte de cabelo",
+            "description": "Corte masculino",
             "duration_minutes": 30,
-            "price": 50,
+            "price": 50.00,
         },
     )
+
+    assert create_response.status_code == 201
 
     service_id = create_response.get_json()["id"]
 
     response = client.put(
-        f"/services/{service_id}?establishment_id=1",
+        f"/services/{service_id}",
+        headers=auth_headers,
         json={
             "duration_minutes": 0,
         },
@@ -502,7 +394,86 @@ def test_update_service_with_invalid_data(client):
     data = response.get_json()
 
     assert data["error"] == "Validation error"
-    assert (
-        data["details"]["duration_minutes"]
-        == "Must be greater than zero"
+    assert data["details"]["duration_minutes"] == "Must be greater than zero"
+
+
+def test_service_isolation_between_establishments(
+    client,
+    app,
+    auth_headers,
+):
+    from app.extensions import db
+    from app.models import Establishment, User
+    from werkzeug.security import generate_password_hash
+
+    with app.app_context():
+        establishment_2 = Establishment(
+            name="Outro Estabelecimento",
+            slug="outro-estabelecimento",
+            phone="11888888888",
+        )
+
+        db.session.add(establishment_2)
+        db.session.commit()
+
+        user_2 = User(
+            establishment_id=establishment_2.id,
+            email="outro@exemplo.com",
+            password_hash=generate_password_hash("123456"),
+        )
+
+        db.session.add(user_2)
+        db.session.commit()
+
+    response = client.post(
+        "/services",
+        headers=auth_headers,
+        json={
+            "name": "Serviço privado",
+            "description": "Serviço do estabelecimento 1",
+            "duration_minutes": 30,
+            "price": 50.00,
+        },
     )
+
+    assert response.status_code == 201
+
+    service_id = response.get_json()["id"]
+
+    response = client.post(
+        "/auth/login",
+        json={
+            "email": "outro@exemplo.com",
+            "password": "123456",
+        },
+    )
+
+    assert response.status_code == 200
+
+    token = response.get_json()["access_token"]
+
+    auth_headers_2 = {"Authorization": f"Bearer {token}"}
+
+    response = client.get(
+        f"/services/{service_id}",
+        headers=auth_headers_2,
+    )
+
+    assert response.status_code == 404
+
+    response = client.put(
+        f"/services/{service_id}",
+        headers=auth_headers_2,
+        json={
+            "name": "Tentativa de alteração",
+        },
+    )
+
+    assert response.status_code == 404
+
+    response = client.delete(
+        f"/services/{service_id}",
+        headers=auth_headers_2,
+    )
+
+    assert response.status_code == 404

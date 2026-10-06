@@ -1,6 +1,13 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
 from app.models import Appointment, Schedule, ScheduleException, Service
+
+
+def to_naive(dt: datetime) -> datetime:
+    """Converte para UTC e remove tzinfo. Se já for naive, devolve igual."""
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
 
 
 def get_available_slots(
@@ -73,28 +80,25 @@ def get_available_slots(
 
     appointments = appointments_query.all()
 
+    # Normaliza os horários dos agendamentos antes de comparar
+    busy_ranges = [(to_naive(a.starts_at), to_naive(a.ends_at)) for a in appointments]
+
     slots = []
 
     current = start_datetime
+    duration = timedelta(minutes=service_duration_minutes)
 
-    while current + timedelta(
-        minutes=service_duration_minutes
-    ) <= end_datetime:
-        slot_end = current + timedelta(
-            minutes=service_duration_minutes
-        )
+    while current + duration <= end_datetime:
+        slot_end = current + duration
 
         has_conflict = any(
-            appointment.starts_at < slot_end
-            and appointment.ends_at > current
-            for appointment in appointments
+            busy_start < slot_end and busy_end > current
+            for busy_start, busy_end in busy_ranges
         )
 
         if not has_conflict:
             slots.append(current)
 
-        current += timedelta(
-            minutes=service_duration_minutes
-        )
+        current += duration
 
     return slots

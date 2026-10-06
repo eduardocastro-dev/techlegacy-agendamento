@@ -2,12 +2,13 @@ from flask import Flask, jsonify
 
 from .core.errors import APIError
 from .config import Config
-from .extensions import db, migrate
+from .extensions import db, migrate, jwt
 
 from .services.routes import services_bp
 from .schedules.routes import schedules_bp
 from .schedule_exceptions.routes import schedule_exceptions_bp
 from .appointments.routes import appointments_bp
+from .auth.routes import auth_bp
 
 
 def create_app(test_config=None):
@@ -20,7 +21,9 @@ def create_app(test_config=None):
 
     db.init_app(app)
     migrate.init_app(app, db)
+    jwt.init_app(app)
 
+    app.register_blueprint(auth_bp)
     app.register_blueprint(services_bp)
     app.register_blueprint(schedules_bp)
     app.register_blueprint(schedule_exceptions_bp)

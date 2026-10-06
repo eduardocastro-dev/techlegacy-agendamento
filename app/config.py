@@ -3,6 +3,8 @@ import os
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY","dev-jwt-secret-key",)
+    
     SQLALCHEMY_DATABASE_URI = (
         f"postgresql+psycopg://"
         f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"

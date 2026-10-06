@@ -1,13 +1,12 @@
 def validate_service_payload(data, partial=False):
     if not isinstance(data, dict):
-        return {
-            "body": "Request body must be a JSON object"
-        }
+        return {"body": "Request body must be a JSON object"}
 
     errors = {}
 
+    # establishment_id NÃO é obrigatório no payload:
+    # ele vem do token JWT (get_current_establishment_id).
     required_fields = [
-        "establishment_id",
         "name",
         "duration_minutes",
         "price",
@@ -18,13 +17,6 @@ def validate_service_payload(data, partial=False):
             if field not in data:
                 errors[field] = "This field is required"
 
-    if "establishment_id" in data:
-        if (
-            not isinstance(data["establishment_id"], int)
-            or isinstance(data["establishment_id"], bool)
-        ):
-            errors["establishment_id"] = "Must be an integer"
-
     if "name" in data:
         if not isinstance(data["name"], str):
             errors["name"] = "Must be a string"
@@ -34,24 +26,17 @@ def validate_service_payload(data, partial=False):
     if "duration_minutes" in data:
         duration = data["duration_minutes"]
 
-        if (
-            not isinstance(duration, int)
-            or isinstance(duration, bool)
-        ):
+        if not isinstance(duration, int) or isinstance(duration, bool):
             errors["duration_minutes"] = "Must be an integer"
         elif duration <= 0:
-            errors["duration_minutes"] = (
-                "Must be greater than zero"
-            )
+            errors["duration_minutes"] = "Must be greater than zero"
 
     if "price" in data:
         price = data["price"]
 
-        if not isinstance(price, (int, float)):
+        if isinstance(price, bool) or not isinstance(price, (int, float)):
             errors["price"] = "Must be a number"
         elif price < 0:
-            errors["price"] = (
-                "Must be greater than or equal to zero"
-            )
+            errors["price"] = "Must be greater than or equal to zero"
 
     return errors

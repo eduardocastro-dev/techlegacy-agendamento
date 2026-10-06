@@ -2,13 +2,14 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 
+from app.auth.context import get_current_establishment_id
+from app.auth.decorators import jwt_required_with_user
 from app.core.errors import APIError
 from app.extensions import db
 from app.models import ScheduleException
 from app.schedule_exceptions.validation import (
     validate_schedule_exception_payload,
 )
-
 
 schedule_exceptions_bp = Blueprint(
     "schedule_exceptions",
@@ -23,14 +24,10 @@ def serialize_schedule_exception(exception):
         "establishment_id": exception.establishment_id,
         "date": exception.date.isoformat(),
         "opening_time": (
-            exception.opening_time.strftime("%H:%M")
-            if exception.opening_time
-            else None
+            exception.opening_time.strftime("%H:%M") if exception.opening_time else None
         ),
         "closing_time": (
-            exception.closing_time.strftime("%H:%M")
-            if exception.closing_time
-            else None
+            exception.closing_time.strftime("%H:%M") if exception.closing_time else None
         ),
         "closed": exception.closed,
     }
@@ -54,6 +51,7 @@ def parse_time(value):
 
 
 @schedule_exceptions_bp.post("")
+@jwt_required_with_user
 def create_schedule_exception():
     data = request.get_json(silent=True)
 
@@ -66,10 +64,12 @@ def create_schedule_exception():
             details=errors,
         )
 
+    establishment_id = get_current_establishment_id()
+
     exception_date = parse_date(data["date"])
 
     existing_exception = ScheduleException.query.filter_by(
-        establishment_id=data["establishment_id"],
+        establishment_id=establishment_id,
         date=exception_date,
     ).first()
 
@@ -80,74 +80,41 @@ def create_schedule_exception():
         )
 
     exception = ScheduleException(
-        establishment_id=data["establishment_id"],
+        establishment_id=establishment_id,
         date=exception_date,
-        opening_time=parse_time(
-            data.get("opening_time")
-        ),
-        closing_time=parse_time(
-            data.get("closing_time")
-        ),
+        opening_time=parse_time(data.get("opening_time")),
+        closing_time=parse_time(data.get("closing_time")),
         closed=data.get("closed", False),
     )
 
     db.session.add(exception)
     db.session.commit()
 
-    return jsonify(
-        serialize_schedule_exception(exception)
-    ), 201
+    return jsonify(serialize_schedule_exception(exception)), 201
 
 
 @schedule_exceptions_bp.get("")
+@jwt_required_with_user
 def list_schedule_exceptions():
-    establishment_id = request.args.get(
-        "establishment_id",
-        type=int,
+    establishment_id = get_current_establishment_id()
+
+    exceptions = (
+        ScheduleException.query.filter_by(
+            establishment_id=establishment_id,
+        )
+        .order_by(ScheduleException.date)
+        .all()
     )
 
-    if establishment_id is None:
-        raise APIError(
-            "Validation error",
-            status_code=400,
-            details={
-                "establishment_id": (
-                    "This query parameter is required"
-                )
-            },
-        )
-
-    exceptions = ScheduleException.query.filter_by(
-        establishment_id=establishment_id,
-    ).order_by(
-        ScheduleException.date
-    ).all()
-
-    return jsonify([
-        serialize_schedule_exception(exception)
-        for exception in exceptions
-    ])
+    return jsonify(
+        [serialize_schedule_exception(exception) for exception in exceptions]
+    )
 
 
-@schedule_exceptions_bp.get(
-    "/<int:exception_id>"
-)
+@schedule_exceptions_bp.get("/<int:exception_id>")
+@jwt_required_with_user
 def get_schedule_exception(exception_id):
-    establishment_id = request.args.get(
-        "establishment_id",
-        type=int,
-    )
-
-    if establishment_id is None:
-        raise APIError(
-            "Validation error",
-            status_code=400,
-            details={
-                "establishment_id": (
-                    "This query parameter is required"
-                )
-            },
-        )
+    establishment_id = get_current_establishment_id()
 
     exception = ScheduleException.query.filter_by(
         id=exception_id,
@@ -160,30 +127,13 @@ def get_schedule_exception(exception_id):
             status_code=404,
         )
 
-    return jsonify(
-        serialize_schedule_exception(exception)
-    )
+    return jsonify(serialize_schedule_exception(exception))
 
 
-@schedule_exceptions_bp.put(
-    "/<int:exception_id>"
-)
+@schedule_exceptions_bp.put("/<int:exception_id>")
+@jwt_required_with_user
 def update_schedule_exception(exception_id):
-    establishment_id = request.args.get(
-        "establishment_id",
-        type=int,
-    )
-
-    if establishment_id is None:
-        raise APIError(
-            "Validation error",
-            status_code=400,
-            details={
-                "establishment_id": (
-                    "This query parameter is required"
-                )
-            },
-        )
+    establishment_id = get_current_establishment_id()
 
     exception = ScheduleException.query.filter_by(
         id=exception_id,
@@ -223,11 +173,7 @@ def update_schedule_exception(exception_id):
     # precisamos validar o estado final e não apenas
     # o conteúdo enviado no payload.
 
-    new_date = (
-        parse_date(data["date"])
-        if "date" in data
-        else exception.date
-    )
+    new_date = parse_date(data["date"]) if "date" in data else exception.date
 
     new_opening_time = (
         parse_time(data["opening_time"])
@@ -241,26 +187,18 @@ def update_schedule_exception(exception_id):
         else exception.closing_time
     )
 
-    new_closed = (
-        data["closed"]
-        if "closed" in data
-        else exception.closed
-    )
+    new_closed = data["closed"] if "closed" in data else exception.closed
 
     # Quando a exceção não está fechada, os horários
     # de abertura e fechamento são obrigatórios.
     if not new_closed:
-        if (
-            new_opening_time is None
-            or new_closing_time is None
-        ):
+        if new_opening_time is None or new_closing_time is None:
             raise APIError(
                 "Validation error",
                 status_code=400,
                 details={
                     "opening_time": (
-                        "Opening and closing times are "
-                        "required when closed is false"
+                        "Opening and closing times are " "required when closed is false"
                     )
                 },
             )
@@ -271,11 +209,7 @@ def update_schedule_exception(exception_id):
             raise APIError(
                 "Validation error",
                 status_code=400,
-                details={
-                    "closing_time": (
-                        "Must be later than opening_time"
-                    )
-                },
+                details={"closing_time": ("Must be later than opening_time")},
             )
 
     # Verifica se existe outra exceção para a mesma
@@ -301,30 +235,13 @@ def update_schedule_exception(exception_id):
 
     db.session.commit()
 
-    return jsonify(
-        serialize_schedule_exception(exception)
-    )
+    return jsonify(serialize_schedule_exception(exception))
 
 
-@schedule_exceptions_bp.delete(
-    "/<int:exception_id>"
-)
+@schedule_exceptions_bp.delete("/<int:exception_id>")
+@jwt_required_with_user
 def delete_schedule_exception(exception_id):
-    establishment_id = request.args.get(
-        "establishment_id",
-        type=int,
-    )
-
-    if establishment_id is None:
-        raise APIError(
-            "Validation error",
-            status_code=400,
-            details={
-                "establishment_id": (
-                    "This query parameter is required"
-                )
-            },
-        )
+    establishment_id = get_current_establishment_id()
 
     exception = ScheduleException.query.filter_by(
         id=exception_id,
@@ -340,6 +257,4 @@ def delete_schedule_exception(exception_id):
     db.session.delete(exception)
     db.session.commit()
 
-    return jsonify({
-        "message": "Schedule exception deleted successfully"
-    })
+    return jsonify({"message": "Schedule exception deleted successfully"})

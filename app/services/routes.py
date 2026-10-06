@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify, request
 
+from app.auth.context import get_current_establishment_id
+from app.auth.decorators import jwt_required_with_user
 from app.core.errors import APIError
 from app.extensions import db
 from app.models import Service
 from app.services.validation import validate_service_payload
-
 
 services_bp = Blueprint(
     "services",
@@ -26,6 +27,7 @@ def serialize_service(service):
 
 
 @services_bp.post("")
+@jwt_required_with_user
 def create_service():
     data = request.get_json(silent=True)
 
@@ -38,8 +40,10 @@ def create_service():
             details=errors,
         )
 
+    establishment_id = get_current_establishment_id()
+
     service = Service(
-        establishment_id=data["establishment_id"],
+        establishment_id=establishment_id,
         name=data["name"].strip(),
         description=data.get("description"),
         duration_minutes=data["duration_minutes"],
@@ -54,47 +58,22 @@ def create_service():
 
 
 @services_bp.get("")
+@jwt_required_with_user
 def list_services():
-    establishment_id = request.args.get(
-        "establishment_id",
-        type=int,
-    )
-
-    if establishment_id is None:
-        raise APIError(
-            "Validation error",
-            status_code=400,
-            details={
-                "establishment_id": "This query parameter is required"
-            },
-        )
+    establishment_id = get_current_establishment_id()
 
     services = Service.query.filter_by(
         establishment_id=establishment_id,
         active=True,
     ).all()
 
-    return jsonify([
-        serialize_service(service)
-        for service in services
-    ])
+    return jsonify([serialize_service(service) for service in services])
 
 
 @services_bp.get("/<int:service_id>")
+@jwt_required_with_user
 def get_service(service_id):
-    establishment_id = request.args.get(
-        "establishment_id",
-        type=int,
-    )
-
-    if establishment_id is None:
-        raise APIError(
-            "Validation error",
-            status_code=400,
-            details={
-                "establishment_id": "This query parameter is required"
-            },
-        )
+    establishment_id = get_current_establishment_id()
 
     service = Service.query.filter_by(
         id=service_id,
@@ -112,20 +91,9 @@ def get_service(service_id):
 
 
 @services_bp.put("/<int:service_id>")
+@jwt_required_with_user
 def update_service(service_id):
-    establishment_id = request.args.get(
-        "establishment_id",
-        type=int,
-    )
-
-    if establishment_id is None:
-        raise APIError(
-            "Validation error",
-            status_code=400,
-            details={
-                "establishment_id": "This query parameter is required"
-            },
-        )
+    establishment_id = get_current_establishment_id()
 
     service = Service.query.filter_by(
         id=service_id,
@@ -171,20 +139,9 @@ def update_service(service_id):
 
 
 @services_bp.delete("/<int:service_id>")
+@jwt_required_with_user
 def delete_service(service_id):
-    establishment_id = request.args.get(
-        "establishment_id",
-        type=int,
-    )
-
-    if establishment_id is None:
-        raise APIError(
-            "Validation error",
-            status_code=400,
-            details={
-                "establishment_id": "This query parameter is required"
-            },
-        )
+    establishment_id = get_current_establishment_id()
 
     service = Service.query.filter_by(
         id=service_id,
@@ -202,6 +159,4 @@ def delete_service(service_id):
 
     db.session.commit()
 
-    return jsonify({
-        "message": "Service deactivated successfully"
-    })
+    return jsonify({"message": "Service deactivated successfully"})

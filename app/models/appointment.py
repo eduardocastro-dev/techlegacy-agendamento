@@ -34,12 +34,12 @@ class Appointment(db.Model):
     )
 
     starts_at = db.Column(
-        db.DateTime(timezone=True),
+        db.DateTime,
         nullable=False,
     )
 
     ends_at = db.Column(
-        db.DateTime(timezone=True),
+        db.DateTime,
         nullable=False,
     )
 
@@ -72,8 +72,4 @@ class Appointment(db.Model):
     )
 
     def __repr__(self):
-        return (
-            f"<Appointment "
-            f"id={self.id} "
-            f"customer={self.customer_name}>"
-        )
+        return f"<Appointment " f"id={self.id} " f"customer={self.customer_name}>"
