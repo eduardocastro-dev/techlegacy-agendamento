@@ -1,10 +1,10 @@
-# TechLegacy Agendamento
+# 🚀 TechLegacy Agendamento
 
 Sistema de agendamento para pequenos estabelecimentos.
 
 O projeto tem como objetivo disponibilizar uma plataforma simples para que estabelecimentos possam configurar seus serviços, horários de atendimento e receber agendamentos de clientes através de uma página pública.
 
-O sistema está sendo desenvolvido de forma incremental, com foco em organização de código, regras de negócio, testes automatizados, containerização e, posteriormente, CI/CD e deploy.
+O sistema está sendo desenvolvido de forma incremental, com foco em organização de código, regras de negócio, testes automatizados, containerização, autenticação, multi-tenancy e, posteriormente, CI/CD e deploy.
 
 ---
 
@@ -27,7 +27,7 @@ A primeira versão está sendo desenvolvida como um **monólito modular**, mante
 
 ## 🏗️ Arquitetura
 
-A arquitetura inicial utiliza um monólito modular baseado em Flask.
+A arquitetura utiliza um monólito modular baseado em Flask.
 
 ```text
                          ┌─────────────────────┐
@@ -39,24 +39,21 @@ A arquitetura inicial utiliza um monólito modular baseado em Flask.
                          │      Flask API      │
                          └──────────┬──────────┘
                                     │
-             ┌──────────────────────┼──────────────────────┐
-             │                      │                      │
-             ▼                      ▼                      ▼
-      Establishments            Services              Schedules
-             │                      │                      │
-             └──────────────────────┼──────────────────────┘
+              ┌─────────────────────┼─────────────────────┐
+              │                     │                     │
+              ▼                     ▼                     ▼
+        Authentication        Business Rules        Public Booking
+              │                     │                     │
+              ▼                     ▼                     ▼
+         Multi-tenancy        Appointments           Future
+              │                     │
+              └─────────────────────┼─────────────────────┘
                                     │
                                     ▼
-                           Business Rules
-                                    │
-                                    ▼
-                              Appointments
-                                    │
-                                    ▼
-                              PostgreSQL
+                               PostgreSQL
 ```
 
-Mais detalhes estão disponíveis em:
+Mais detalhes:
 
 - [Arquitetura](docs/architecture.md)
 - [Banco de dados](docs/database.md)
@@ -76,6 +73,7 @@ Mais detalhes estão disponíveis em:
 - SQLAlchemy
 - Flask-Migrate
 - Alembic
+- Flask-JWT-Extended
 
 ### Banco de dados
 
@@ -90,19 +88,15 @@ Mais detalhes estão disponíveis em:
 
 - Pytest
 
-### Futuramente
+### Planejado
 
-A arquitetura está sendo preparada para receber:
-
-- JWT
-- Multi-tenancy
-- CI/CD
 - GitHub Actions
-- Deploy em servidor
+- CI/CD
+- Deploy no servidor Contabo
+- HTTPS
+- Monitoramento
 - Integrações externas
 - Notificações
-
-Esses componentes ainda não fazem parte da implementação atual.
 
 ---
 
@@ -141,39 +135,32 @@ Esses componentes ainda não fazem parte da implementação atual.
 - [x] CRUD de Services
 - [x] Soft delete de Services
 - [x] Testes automatizados
-- [x] 17 testes passando
 
-#### Estado das migrations
+### Fase 3 — API REST
 
-```text
-6604689ef554 (head)
-```
+- [x] API de Services
+- [x] API de Schedules
+- [x] API de Schedule Exceptions
+- [x] API de Appointments
+- [x] Validação de entrada
+- [x] Tratamento padronizado de erros
+- [x] Isolamento por estabelecimento
+- [x] Testes automatizados dos endpoints
 
-### 🔌 Fase 3 — API REST
+### Fase 4 — Autenticação e Multi-tenancy
 
-Próxima etapa do projeto:
+- [x] Cadastro de usuário
+- [x] Login
+- [x] JWT
+- [x] Autorização
+- [x] Identificação do estabelecimento pelo usuário autenticado
+- [x] Isolamento entre estabelecimentos
+- [x] Proteção dos endpoints administrativos
+- [x] Testes de autenticação
+- [x] Testes de isolamento entre tenants
+- [x] Padronização de timezone nos horários de agendamento
 
-- [ ] API de Establishments
-- [ ] API de Services
-- [ ] API de Schedules
-- [ ] API de Appointments
-- [ ] Validação de entrada
-- [ ] Padronização de respostas
-- [ ] Tratamento de erros
-- [ ] Documentação da API
-
-A API de Services já possui um CRUD funcional e será utilizada como base para a evolução da camada REST.
-
-### 🔐 Fase 4 — Autenticação e Multi-tenancy
-
-- [ ] Cadastro de usuário
-- [ ] Login
-- [ ] JWT
-- [ ] Autorização
-- [ ] Identificação do estabelecimento pelo usuário autenticado
-- [ ] Isolamento entre estabelecimentos
-
-### 🖥️ Fase 5 — Dashboard
+### Fase 5 — Dashboard
 
 - [ ] Dashboard administrativo
 - [ ] Gerenciamento de serviços
@@ -182,7 +169,7 @@ A API de Services já possui um CRUD funcional e será utilizada como base para 
 - [ ] Visão geral do estabelecimento
 - [ ] Personalização básica
 
-### 📅 Fase 6 — Agendamento público
+### Fase 6 — Agendamento público
 
 - [ ] Página pública do estabelecimento
 - [ ] Seleção de serviço
@@ -193,33 +180,55 @@ A API de Services já possui um CRUD funcional e será utilizada como base para 
 - [ ] Criação do agendamento
 - [ ] Confirmação
 
-### 🔔 Fase 7 — Integrações
-
-- [ ] WhatsApp
-- [ ] Notificações
-- [ ] Automações
-- [ ] Integrações externas
-
-### ⚙️ Fase 8 — Qualidade e CI/CD
+### Fase 7 — Qualidade e Segurança
 
 - [ ] Lint
 - [ ] Padronização de código
 - [ ] Logging
-- [ ] Testes no GitHub Actions
+- [ ] Revisão de segurança
+- [ ] Testes de integração
+- [ ] Testes de cenários críticos
+
+### Fase 8 — CI/CD e Automação de Pipeline
+
+- [ ] GitHub Actions
+- [ ] Lint automatizado
+- [ ] Execução de testes no Pull Request
 - [ ] Build Docker automatizado
 - [ ] Pipeline CI
 - [ ] Pipeline CD
 - [ ] Deploy automatizado
 
-### 🚀 Fase 9 — Produção
+### Fase 9 — Produção
 
 - [ ] Configuração do ambiente de produção
-- [ ] Deploy
+- [ ] Deploy no servidor
 - [ ] Banco de produção
 - [ ] Variáveis de ambiente
 - [ ] HTTPS
 - [ ] Monitoramento
 - [ ] Backup
+
+### Fase 10 — Evolução SaaS e ML
+
+- [ ] Evolução para modelo SaaS
+- [ ] Métricas de uso
+- [ ] Previsão de demanda
+- [ ] Insights sobre agendamentos
+- [ ] Experimentação com modelos de Machine Learning
+- [ ] Monitoramento de modelos
+
+---
+
+## 🔐 Autenticação e Multi-tenancy
+
+A área administrativa utiliza autenticação baseada em JWT.
+
+O usuário autenticado está associado a um estabelecimento e o contexto do estabelecimento é obtido através do usuário autenticado.
+
+Dessa forma, endpoints administrativos não dependem de `establishment_id` enviado pelo cliente para determinar o tenant.
+
+O sistema também possui testes de isolamento para garantir que um usuário de um estabelecimento não consiga acessar agendamentos pertencentes a outro estabelecimento.
 
 ---
 
@@ -231,14 +240,14 @@ As alterações estruturais são controladas através de:
 
 ```text
 SQLAlchemy
-      │
-      ▼
+     │
+     ▼
 Flask-Migrate
-      │
-      ▼
+     │
+     ▼
 Alembic
-      │
-      ▼
+     │
+     ▼
 PostgreSQL
 ```
 
@@ -283,27 +292,38 @@ app/core/availability.py
 
 ---
 
-## 🔧 CRUD de Services
+## 🧩 API
 
-Atualmente o projeto possui:
-
-```text
-POST    /services
-GET     /services
-GET     /services/<id>
-PUT     /services/<id>
-DELETE  /services/<id>
-```
-
-O `DELETE` utiliza soft delete.
-
-Em vez de remover fisicamente o registro:
+Principais recursos implementados:
 
 ```text
-active = false
+/auth
+    POST /auth/register
+    POST /auth/login
+
+/services
+    POST   /services
+    GET    /services
+    GET    /services/<id>
+    PUT    /services/<id>
+    DELETE /services/<id>
+
+/schedules
+    POST   /schedules
+    GET    /schedules
+    GET    /schedules/<id>
+    PUT    /schedules/<id>
+    DELETE /schedules/<id>
+
+/appointments
+    POST   /appointments
+    GET    /appointments
+    GET    /appointments/<id>
+    PUT    /appointments/<id>
+    DELETE /appointments/<id>
 ```
 
-O serviço deixa de aparecer nas consultas de serviços ativos.
+Os endpoints administrativos são protegidos por JWT e utilizam o estabelecimento associado ao usuário autenticado.
 
 Mais detalhes:
 
@@ -321,17 +341,11 @@ Executar todos os testes:
 pytest -v
 ```
 
-Estado atual:
-
-```text
-17 passed
-```
-
 Os testes cobrem:
 
 - Health check;
 - Disponibilidade;
-- Conflitos;
+- Conflitos de horário;
 - Exceções de horário;
 - Criação de serviços;
 - Listagem;
@@ -339,7 +353,13 @@ Os testes cobrem:
 - Atualização;
 - Atualização parcial;
 - Exclusão lógica;
-- Recursos inexistentes.
+- Recursos inexistentes;
+- Autenticação;
+- Autorização;
+- Isolamento entre estabelecimentos;
+- Criação e gerenciamento de agendamentos;
+- Cancelamento e reativação de agendamentos;
+- Validação de horários e timezone.
 
 ---
 
@@ -403,7 +423,7 @@ Verificar head:
 flask --app app db heads
 ```
 
-Estado atual:
+Estado atual da cadeia de migrations:
 
 ```text
 6604689ef554 (head)
@@ -417,8 +437,14 @@ Estado atual:
 techlegacy-agendamento/
 │
 ├── app/
+│   ├── auth/
+│   │   ├── routes.py
+│   │   ├── context.py
+│   │   └── decorators.py
+│   │
 │   ├── core/
-│   │   └── availability.py
+│   │   ├── availability.py
+│   │   └── errors.py
 │   │
 │   ├── models/
 │   │   ├── __init__.py
@@ -431,6 +457,10 @@ techlegacy-agendamento/
 │   │
 │   ├── services/
 │   │   └── routes.py
+│   │
+│   ├── appointments/
+│   │   ├── routes.py
+│   │   └── validation.py
 │   │
 │   ├── config.py
 │   ├── extensions.py
@@ -450,7 +480,10 @@ techlegacy-agendamento/
 │   ├── conftest.py
 │   ├── test_availability.py
 │   ├── test_health.py
-│   └── test_services.py
+│   ├── test_services.py
+│   ├── test_schedules.py
+│   ├── test_schedule_exceptions.py
+│   └── test_appointments.py
 │
 ├── .env.example
 ├── .gitignore
@@ -464,14 +497,14 @@ techlegacy-agendamento/
 
 ## 📚 Documentação
 
-| Documento                                | Descrição                    |
-| ---------------------------------------- | ---------------------------- |
-| [Architecture](docs/architecture.md)     | Arquitetura e organização    |
-| [Database](docs/database.md)             | Modelos e banco              |
-| [Business Rules](docs/business-rules.md) | Regras de negócio            |
-| [API](docs/api.md)                       | Endpoints                    |
-| [Development](docs/development.md)       | Ambiente de desenvolvimento  |
-| [Roadmap](docs/roadmap.md)               | Evolução do projeto          |
+| Documento | Descrição |
+|---|---|
+| [Architecture](docs/architecture.md) | Arquitetura e organização |
+| [Database](docs/database.md) | Modelos e banco |
+| [Business Rules](docs/business-rules.md) | Regras de negócio |
+| [API](docs/api.md) | Endpoints |
+| [Development](docs/development.md) | Ambiente de desenvolvimento |
+| [Roadmap](docs/roadmap.md) | Evolução do projeto |
 
 ---
 
@@ -518,7 +551,9 @@ O desenvolvimento segue alguns princípios:
 - Evolução incremental;
 - Evitar complexidade prematura;
 - Preparação para CI/CD;
-- Arquitetura preparada para multi-tenancy.
+- Arquitetura preparada para multi-tenancy;
+- Segurança e isolamento por tenant;
+- Manter ML como evolução do produto, não como complexidade prematura do MVP.
 
 ---
 
