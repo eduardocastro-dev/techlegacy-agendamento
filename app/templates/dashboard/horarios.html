@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Horários | TechLegacy Agendamento
+    </title>
+
+    <link rel="stylesheet" href="{{ url_for(
+            'static',
+            filename='css/dashboard.css'
+        ) }}">
+
+    <link rel="stylesheet" href="{{ url_for(
+            'static',
+            filename='css/horarios.css'
+        ) }}">
+
+</head>
+
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+
+                <h2>
+                    TechLegacy
+                </h2>
+
+                <span>
+                    Agendamento
+                </span>
+
+            </div>
+
+
+            <nav class="sidebar-nav">
+
+                <a href="/dashboard/admin" class="nav-item">
+                    📊 Visão geral
+                </a>
+
+
+                <a href="/dashboard/admin/agenda" class="nav-item">
+                    📅 Agenda
+                </a>
+
+
+                <a href="/dashboard/admin/servicos" class="nav-item">
+                    💈 Serviços
+                </a>
+
+
+                <a href="/dashboard/admin/horarios" class="nav-item active">
+                    🕐 Horários
+                </a>
+
+
+                <a href="/dashboard/admin/configuracoes" class="nav-item">
+                    ⚙️ Configurações
+                </a>
+
+            </nav>
+
+        </aside>
+
+
+        <!-- =====================================================
+             CONTEÚDO PRINCIPAL
+        ====================================================== -->
+
+        <main class="main-content">
+
+            <!-- =================================================
+                 TOPBAR
+            ================================================== -->
+
+            <header class="topbar">
+
+                <div>
+
+                    <h1>
+                        Horários
+                    </h1>
+
+                    <p>
+                        Configure os horários de funcionamento
+                        do estabelecimento.
+                    </p>
+
+                </div>
+
+            </header>
+
+
+            <section class="content">
+
+                <!-- =============================================
+                     HORÁRIO SEMANAL
+                ============================================== -->
+
+                <section class="panel schedule-panel">
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h2>
+                                Horário de funcionamento
+                            </h2>
+
+                            <p>
+                                Configure os horários de atendimento
+                                para cada dia da semana.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="weekly-schedule" class="weekly-schedule">
+
+                        <div class="schedule-loading">
+
+                            <span>
+                                🕐
+                            </span>
+
+                            <p>
+                                Carregando horários...
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =============================================
+                     EXCEÇÕES
+                ============================================== -->
+
+                <section class="panel exceptions-panel">
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h2>
+                                Exceções de funcionamento
+                            </h2>
+
+                            <p>
+                                Configure dias específicos com horários
+                                diferentes ou fechamento excepcional.
+                            </p>
+
+                        </div>
+
+
+                        <button type="button" id="new-exception-button" class="button-primary">
+                            + Adicionar exceção
+                        </button>
+
+                    </div>
+
+
+                    <div id="exceptions-list" class="exceptions-list">
+
+                        <div class="schedule-loading">
+
+                            <span>
+                                📅
+                            </span>
+
+                            <p>
+                                Carregando exceções...
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- =========================================================
+         MODAL — HORÁRIO
+    ========================================================== -->
+
+    <div id="schedule-modal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h3 id="schedule-modal-title">
+                        Editar horário
+                    </h3>
+
+                    <p>
+                        Configure o funcionamento deste dia.
+                    </p>
+
+                </div>
+
+
+                <button type="button" id="close-schedule-modal" class="modal-close" aria-label="Fechar">
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="schedule-form" class="modal-form">
+
+                <div class="form-group">
+
+                    <label for="schedule-weekday">
+                        Dia da semana
+                    </label>
+
+                    <input type="text" id="schedule-weekday" readonly>
+
+                </div>
+
+
+                <div class="schedule-active-row">
+
+                    <div>
+
+                        <strong>
+                            Dia de funcionamento
+                        </strong>
+
+                        <p>
+                            Ative ou desative o atendimento neste dia.
+                        </p>
+
+                    </div>
+
+
+                    <label class="switch">
+
+                        <input type="checkbox" id="schedule-active">
+
+                        <span class="slider"></span>
+
+                    </label>
+
+                </div>
+
+
+                <div id="schedule-times" class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="schedule-opening">
+                            Abertura
+                        </label>
+
+                        <input type="time" id="schedule-opening">
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="schedule-closing">
+                            Fechamento
+                        </label>
+
+                        <input type="time" id="schedule-closing">
+
+                    </div>
+
+                </div>
+
+
+                <div id="schedule-error" class="form-error hidden"></div>
+
+
+                <div class="modal-actions">
+
+                    <button type="button" id="cancel-schedule-modal" class="button-secondary">
+                        Cancelar
+                    </button>
+
+
+                    <button type="submit" id="save-schedule" class="button-primary">
+                        Salvar horário
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MODAL — EXCEÇÃO
+    ========================================================== -->
+
+    <div id="exception-modal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h3 id="exception-modal-title">
+                        Nova exceção
+                    </h3>
+
+                    <p>
+                        Configure uma alteração específica para uma data.
+                    </p>
+
+                </div>
+
+
+                <button type="button" id="close-exception-modal" class="modal-close" aria-label="Fechar">
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="exception-form" class="modal-form">
+
+                <div class="form-group">
+
+                    <label for="exception-date">
+                        Data
+                    </label>
+
+                    <input type="date" id="exception-date" required>
+
+                </div>
+
+
+                <div class="exception-type">
+
+                    <label>
+                        Tipo de funcionamento
+                    </label>
+
+
+                    <label class="radio-option">
+
+                        <input type="radio" name="exception-type" value="special" checked>
+
+                        <span>
+                            Horário especial
+                        </span>
+
+                    </label>
+
+
+                    <label class="radio-option">
+
+                        <input type="radio" name="exception-type" value="closed">
+
+                        <span>
+                            Estabelecimento fechado
+                        </span>
+
+                    </label>
+
+                </div>
+
+
+                <div id="exception-times" class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="exception-opening">
+                            Abertura
+                        </label>
+
+                        <input type="time" id="exception-opening">
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="exception-closing">
+                            Fechamento
+                        </label>
+
+                        <input type="time" id="exception-closing">
+
+                    </div>
+
+                </div>
+
+
+                <div id="exception-error" class="form-error hidden"></div>
+
+
+                <div class="modal-actions">
+
+                    <button type="button" id="cancel-exception-modal" class="button-secondary">
+                        Cancelar
+                    </button>
+
+
+                    <button type="submit" id="save-exception" class="button-primary">
+                        Salvar exceção
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <script src="{{ url_for(
+            'static',
+            filename='js/horarios.js'
+        ) }}"></script>
+
+</body>
+
+</html>

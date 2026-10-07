@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Configurações | TechLegacy Agendamento</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/configuracoes.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h1>TechLegacy</h1>
+                <span>Agendamento</span>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/dashboard/admin" class="nav-item">
+                    <span>📊</span>
+                    <span>Visão geral</span>
+                </a>
+
+                <a href="/dashboard/admin/agenda" class="nav-item">
+                    <span>📅</span>
+                    <span>Agenda</span>
+                </a>
+
+                <a href="/dashboard/admin/servicos" class="nav-item">
+                    <span>✂️</span>
+                    <span>Serviços</span>
+                </a>
+
+                <a href="/dashboard/admin/horarios" class="nav-item">
+                    <span>🕐</span>
+                    <span>Horários</span>
+                </a>
+
+                <a href="/dashboard/admin/configuracoes" class="nav-item active">
+                    <span>⚙️</span>
+                    <span>Configurações</span>
+                </a>
+
+            </nav>
+
+        </aside>
+
+
+        <!-- CONTEÚDO PRINCIPAL -->
+
+        <main class="main-content">
+
+            <!-- TOPBAR -->
+
+            <header class="topbar">
+
+                <div>
+
+                    <h2>Configurações</h2>
+
+                    <p>
+                        Gerencie as informações do seu estabelecimento e da sua conta.
+                    </p>
+
+                </div>
+
+            </header>
+
+
+            <!-- CONTEÚDO -->
+
+            <div class="content">
+
+                <!-- ESTABELECIMENTO -->
+
+                <section class="settings-card">
+
+                    <div class="settings-card-header">
+
+                        <div>
+
+                            <h3>Estabelecimento</h3>
+
+                            <p>
+                                Essas informações serão utilizadas no seu
+                                ambiente de agendamento.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <form id="settings-form" class="settings-form">
+
+                        <div class="form-grid">
+
+                            <!-- NOME -->
+
+                            <div class="form-group">
+
+                                <label for="name">
+                                    Nome do estabelecimento
+                                </label>
+
+                                <input type="text" id="name" name="name" maxlength="120" required>
+
+                            </div>
+
+
+                            <!-- TELEFONE -->
+
+                            <div class="form-group">
+
+                                <label for="phone">
+                                    Telefone
+                                </label>
+
+                                <input type="text" id="phone" name="phone" maxlength="20" placeholder="(11) 99999-9999">
+
+                            </div>
+
+
+                            <!-- SLUG -->
+
+                            <div class="form-group form-group-full">
+
+                                <label for="slug">
+                                    Identificador público
+                                </label>
+
+                                <input type="text" id="slug" name="slug" maxlength="120" required>
+
+                                <small>
+                                    Será utilizado no link público do seu
+                                    estabelecimento.
+                                </small>
+
+                            </div>
+
+
+                            <!-- LINK PÚBLICO -->
+
+                            <div class="public-link-box form-group-full">
+
+                                <span class="public-link-label">
+                                    Link público
+                                </span>
+
+                                <a id="public-link" href="#" target="_blank" rel="noopener noreferrer">
+                                    -
+                                </a>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- MENSAGEM -->
+
+                        <div id="settings-message" class="settings-message" hidden></div>
+
+
+                        <!-- BOTÃO -->
+
+                        <div class="form-actions">
+
+                            <button type="submit" class="btn-primary" id="save-settings">
+                                Salvar alterações
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </section>
+
+
+                <!-- INFORMAÇÕES DO CADASTRO -->
+
+                <section class="settings-card">
+
+                    <div class="settings-card-header">
+
+                        <div>
+
+                            <h3>Informações do cadastro</h3>
+
+                            <p>
+                                Informações geradas automaticamente pelo
+                                sistema.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="account-info-grid">
+
+                        <div class="info-item">
+
+                            <span class="info-label">
+                                ID do estabelecimento
+                            </span>
+
+                            <strong id="establishment-id">
+                                -
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span class="info-label">
+                                Período de teste
+                            </span>
+
+                            <strong id="trial-ends-at">
+                                -
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span class="info-label">
+                                Cadastro realizado em
+                            </span>
+
+                            <strong id="created-at">
+                                -
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- DADOS DA CONTA -->
+
+                <section class="settings-card">
+
+                    <div class="settings-card-header">
+
+                        <div>
+
+                            <h3>Dados da conta</h3>
+
+                            <p>
+                                Gerencie o e-mail utilizado para acessar sua conta.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <form id="account-form" class="settings-form">
+
+                        <div class="form-grid">
+
+                            <!-- E-MAIL ATUAL -->
+
+                            <div class="form-group">
+
+                                <label for="current-email">
+                                    E-mail atual
+                                </label>
+
+                                <input type="email" id="current-email" name="current-email" readonly>
+
+                            </div>
+
+
+                            <!-- NOVO E-MAIL -->
+
+                            <div class="form-group">
+
+                                <label for="new-email">
+                                    Novo e-mail
+                                </label>
+
+                                <input type="email" id="new-email" name="new-email" maxlength="255" required>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- MENSAGEM -->
+
+                        <div id="account-message" class="settings-message" hidden></div>
+
+
+                        <!-- BOTÃO -->
+
+                        <div class="form-actions">
+
+                            <button type="submit" class="btn-primary" id="save-account">
+                                Salvar e-mail
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </section>
+
+
+                <!-- SEGURANÇA -->
+
+                <section class="settings-card">
+
+                    <div class="settings-card-header">
+
+                        <div>
+
+                            <h3>Segurança</h3>
+
+                            <p>
+                                Altere sua senha de acesso à plataforma.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <form id="password-form" class="settings-form">
+
+                        <div class="form-grid">
+
+                            <!-- SENHA ATUAL -->
+
+                            <div class="form-group form-group-full">
+
+                                <label for="current-password">
+                                    Senha atual
+                                </label>
+
+                                <input type="password" id="current-password" name="current-password"
+                                    autocomplete="current-password" required>
+
+                            </div>
+
+
+                            <!-- NOVA SENHA -->
+
+                            <div class="form-group">
+
+                                <label for="new-password">
+                                    Nova senha
+                                </label>
+
+                                <input type="password" id="new-password" name="new-password" minlength="6"
+                                    autocomplete="new-password" required>
+
+                                <small>
+                                    A senha deve possuir pelo menos 6 caracteres.
+                                </small>
+
+                            </div>
+
+
+                            <!-- CONFIRMAR SENHA -->
+
+                            <div class="form-group">
+
+                                <label for="confirm-password">
+                                    Confirmar nova senha
+                                </label>
+
+                                <input type="password" id="confirm-password" name="confirm-password" minlength="6"
+                                    autocomplete="new-password" required>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- MENSAGEM -->
+
+                        <div id="password-message" class="settings-message" hidden></div>
+
+
+                        <!-- BOTÃO -->
+
+                        <div class="form-actions">
+
+                            <button type="submit" class="btn-primary" id="save-password">
+                                Alterar senha
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <script src="{{ url_for('static', filename='js/configuracoes.js') }}"></script>
+
+</body>
+
+</html>

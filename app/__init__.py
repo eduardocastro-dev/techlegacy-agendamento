@@ -9,6 +9,8 @@ from .schedules.routes import schedules_bp
 from .schedule_exceptions.routes import schedule_exceptions_bp
 from .appointments.routes import appointments_bp
 from .auth.routes import auth_bp
+from .dashboard.routes import dashboard_bp
+from .settings.routes import settings_bp
 
 
 def create_app(test_config=None):
@@ -28,14 +30,14 @@ def create_app(test_config=None):
     app.register_blueprint(schedules_bp)
     app.register_blueprint(schedule_exceptions_bp)
     app.register_blueprint(appointments_bp)
+    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(settings_bp)
 
     from .models import Establishment
 
     @app.errorhandler(APIError)
     def handle_api_error(error):
-        response = {
-            "error": error.message
-        }
+        response = {"error": error.message}
 
         if error.details:
             response["details"] = error.details
@@ -44,27 +46,18 @@ def create_app(test_config=None):
 
     @app.errorhandler(400)
     def handle_bad_request(error):
-        return jsonify({
-            "error": "Bad request"
-        }), 400
+        return jsonify({"error": "Bad request"}), 400
 
     @app.errorhandler(404)
     def handle_not_found(error):
-        return jsonify({
-            "error": "Resource not found"
-        }), 404
+        return jsonify({"error": "Resource not found"}), 404
 
     @app.errorhandler(405)
     def handle_method_not_allowed(error):
-        return jsonify({
-            "error": "Method not allowed"
-        }), 405
+        return jsonify({"error": "Method not allowed"}), 405
 
     @app.get("/health")
     def health():
-        return {
-            "status": "ok",
-            "message": "TechLegacy Agendamento API is running"
-        }
+        return {"status": "ok", "message": "TechLegacy Agendamento API is running"}
 
     return app

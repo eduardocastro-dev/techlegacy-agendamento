@@ -3,9 +3,14 @@ from flask import Blueprint, jsonify, request
 from app.auth.context import get_current_establishment_id
 from app.auth.decorators import jwt_required_with_user
 from app.core.errors import APIError
-from app.extensions import db
-from app.models import Service
 from app.services.validation import validate_service_payload
+from app.services.service import (
+    create_service as create_service_record,
+    list_services as list_service_records,
+    get_service as get_service_record,
+    update_service as update_service_record,
+    deactivate_service,
+)
 
 services_bp = Blueprint(
     "services",
@@ -42,17 +47,13 @@ def create_service():
 
     establishment_id = get_current_establishment_id()
 
-    service = Service(
+    service = create_service_record(
         establishment_id=establishment_id,
-        name=data["name"].strip(),
+        name=data["name"],
         description=data.get("description"),
         duration_minutes=data["duration_minutes"],
         price=data["price"],
-        active=True,
     )
-
-    db.session.add(service)
-    db.session.commit()
 
     return jsonify(serialize_service(service)), 201
 
@@ -62,10 +63,7 @@ def create_service():
 def list_services():
     establishment_id = get_current_establishment_id()
 
-    services = Service.query.filter_by(
-        establishment_id=establishment_id,
-        active=True,
-    ).all()
+    services = list_service_records(establishment_id)
 
     return jsonify([serialize_service(service) for service in services])
 
@@ -75,11 +73,10 @@ def list_services():
 def get_service(service_id):
     establishment_id = get_current_establishment_id()
 
-    service = Service.query.filter_by(
-        id=service_id,
-        establishment_id=establishment_id,
-        active=True,
-    ).first()
+    service = get_service_record(
+        establishment_id,
+        service_id,
+    )
 
     if not service:
         raise APIError(
@@ -95,11 +92,10 @@ def get_service(service_id):
 def update_service(service_id):
     establishment_id = get_current_establishment_id()
 
-    service = Service.query.filter_by(
-        id=service_id,
-        establishment_id=establishment_id,
-        active=True,
-    ).first()
+    service = get_service_record(
+        establishment_id,
+        service_id,
+    )
 
     if not service:
         raise APIError(
@@ -121,19 +117,10 @@ def update_service(service_id):
             details=errors,
         )
 
-    if "name" in data:
-        service.name = data["name"].strip()
-
-    if "description" in data:
-        service.description = data["description"]
-
-    if "duration_minutes" in data:
-        service.duration_minutes = data["duration_minutes"]
-
-    if "price" in data:
-        service.price = data["price"]
-
-    db.session.commit()
+    service = update_service_record(
+        service,
+        data,
+    )
 
     return jsonify(serialize_service(service))
 
@@ -143,11 +130,10 @@ def update_service(service_id):
 def delete_service(service_id):
     establishment_id = get_current_establishment_id()
 
-    service = Service.query.filter_by(
-        id=service_id,
-        establishment_id=establishment_id,
-        active=True,
-    ).first()
+    service = get_service_record(
+        establishment_id,
+        service_id,
+    )
 
     if not service:
         raise APIError(
@@ -155,8 +141,6 @@ def delete_service(service_id):
             status_code=404,
         )
 
-    service.active = False
-
-    db.session.commit()
+    deactivate_service(service)
 
     return jsonify({"message": "Service deactivated successfully"})

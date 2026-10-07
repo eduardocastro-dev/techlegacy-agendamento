@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Serviços | TechLegacy Agendamento</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/services.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar (mesmas opções do index.html) -->
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h1>TechLegacy</h1>
+                <span>Agendamento</span>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/dashboard/admin" class="nav-item">
+                    <span>📊</span>
+                    <span>Visão geral</span>
+                </a>
+
+                <a href="/dashboard/admin/agenda" class="nav-item">
+                    <span>📅</span>
+                    <span>Agenda</span>
+                </a>
+
+                <a href="/dashboard/admin/servicos" class="nav-item active">
+                    <span>✂️</span>
+                    <span>Serviços</span>
+                </a>
+
+                <a href="/dashboard/admin/horarios" class="nav-item">
+                    <span>🕐</span>
+                    <span>Horários</span>
+                </a>
+
+                <a href="/dashboard/admin/configuracoes" class="nav-item">
+                    <span>⚙️</span>
+                    <span>Configurações</span>
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+                <button type="button">
+                    Sair
+                </button>
+            </div>
+
+        </aside>
+
+
+        <!-- Conteúdo principal -->
+        <main class="main-content">
+
+            <header class="topbar">
+
+                <div>
+                    <h2>Serviços</h2>
+                    <p>Gerencie os serviços oferecidos pelo seu estabelecimento.</p>
+                </div>
+
+                <div class="user-area">
+                    <div class="user-info">
+                        <strong>Usuário</strong>
+                        <span>Administrador</span>
+                    </div>
+                </div>
+
+            </header>
+
+
+            <section class="content">
+
+                <section class="panel services-panel">
+
+                    <div class="services-header">
+
+                        <div>
+                            <h2>Seus serviços</h2>
+                            <p>Cadastre, edite ou desative serviços.</p>
+                        </div>
+
+                        <button type="button" id="new-service-button" class="btn-primary">
+                            + Novo serviço
+                        </button>
+
+                    </div>
+
+                    <div id="services-list" class="services-list">
+                        <div class="services-loading">Carregando serviços...</div>
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- Modal de serviço (mesmo estilo do "Novo agendamento") -->
+    <div id="service-modal" class="hidden">
+
+        <div class="service-modal">
+
+            <div class="modal-header">
+
+                <div>
+                    <h3 id="modal-title">Novo serviço</h3>
+                    <p>Cadastre as informações do serviço.</p>
+                </div>
+
+                <button type="button" id="close-modal" class="modal-close" aria-label="Fechar">
+                    ✕
+                </button>
+
+            </div>
+
+            <form id="service-form" class="modal-body">
+
+                <div id="service-error" class="service-error hidden"></div>
+
+                <div class="form-group">
+                    <label for="service-name">Nome do serviço</label>
+                    <input type="text" id="service-name" placeholder="Ex.: Corte de cabelo" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="service-description">Descrição</label>
+                    <textarea id="service-description" rows="3" placeholder="Descrição opcional"></textarea>
+                </div>
+
+                <div class="form-row">
+
+                    <div class="form-group">
+                        <label for="service-duration">Duração</label>
+                        <select id="service-duration">
+                            <option value="15">15 minutos</option>
+                            <option value="30" selected>30 minutos</option>
+                            <option value="45">45 minutos</option>
+                            <option value="60">1 hora</option>
+                            <option value="90">1h30</option>
+                            <option value="120">2 horas</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="service-price">Preço</label>
+                        <input type="number" id="service-price" step="0.01" min="0" placeholder="50.00">
+                    </div>
+
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="cancel-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" id="save-service" class="btn-primary">Salvar serviço</button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/services.js') }}"></script>
+
+</body>
+
+</html>

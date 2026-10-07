@@ -1,0 +1,713 @@
+/* =========================================================
+   AGENDA
+   ========================================================= */
+
+.agenda-panel {
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   CABEÇALHO DA AGENDA
+   ========================================================= */
+
+.agenda-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 24px;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+
+.agenda-header h3 {
+    margin: 0 0 6px;
+
+    font-size: 20px;
+}
+
+
+.agenda-header p {
+    margin: 0;
+
+    color: #6b7280;
+}
+
+
+/* =========================================================
+   NAVEGAÇÃO
+   ========================================================= */
+
+.agenda-navigation {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.agenda-navigation button {
+    width: 40px;
+    height: 40px;
+
+    border: 1px solid #d1d5db;
+
+    background: #ffffff;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 18px;
+}
+
+
+.agenda-navigation button:hover {
+    background: #f3f4f6;
+}
+
+
+.agenda-navigation input {
+    height: 40px;
+
+    padding: 0 12px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 8px;
+
+    font-family: inherit;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   STATUS DO HORÁRIO
+   ========================================================= */
+
+.schedule-status {
+    padding: 16px 24px;
+
+    background: #f8fafc;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    color: #475569;
+}
+
+
+.schedule-status.closed {
+    color: #b91c1c;
+
+    background: #fef2f2;
+}
+
+
+/* =========================================================
+   LISTA DA AGENDA
+   ========================================================= */
+
+.agenda-list {
+    padding: 8px 24px 24px;
+}
+
+
+.agenda-slot {
+    display: grid;
+
+    grid-template-columns: 90px 1fr;
+
+    min-height: 72px;
+
+    border-bottom: 1px solid #eef0f3;
+}
+
+
+.agenda-time {
+    padding: 20px 16px 20px 0;
+
+    color: #6b7280;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    text-align: right;
+}
+
+
+.agenda-content {
+    position: relative;
+
+    padding: 12px 16px;
+
+    border-left: 1px solid #e5e7eb;
+}
+
+
+/* =========================================================
+   HORÁRIO DISPONÍVEL
+   ========================================================= */
+
+.agenda-slot.available {
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.15s ease;
+}
+
+
+.agenda-slot.available:hover {
+    background: #f8fafc;
+
+    transform: translateY(-1px);
+}
+
+
+.agenda-slot.available .agenda-content {
+    display: flex;
+
+    align-items: center;
+
+    color: #9ca3af;
+}
+
+
+.agenda-slot.available .agenda-content::before {
+    content: "";
+
+    width: 8px;
+    height: 8px;
+
+    margin-right: 10px;
+
+    border-radius: 50%;
+
+    background: #d1d5db;
+
+    transition: background 0.2s ease;
+}
+
+
+.agenda-slot.available:hover .agenda-content {
+    color: #2563eb;
+}
+
+
+.agenda-slot.available:hover .agenda-content::before {
+    background: #2563eb;
+}
+
+
+/* =========================================================
+   AGENDAMENTO EXISTENTE
+   ========================================================= */
+
+.appointment-card {
+    padding: 12px 16px;
+
+    border-radius: 8px;
+
+    background: #eff6ff;
+
+    border-left: 4px solid #2563eb;
+}
+
+
+.appointment-card strong {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: #111827;
+}
+
+
+.appointment-card span {
+    display: block;
+
+    color: #4b5563;
+
+    font-size: 14px;
+}
+
+
+.appointment-card .appointment-time {
+    margin-top: 6px;
+
+    color: #2563eb;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+/*
+   IMPORTANTE:
+   O modal usa position: fixed e fica diretamente
+   relacionado à viewport do navegador.
+*/
+
+#appointment-modal {
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+
+    margin: 0 !important;
+
+    padding: 20px !important;
+
+    box-sizing: border-box;
+
+    display: flex;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: rgba(15, 23, 42, 0.60);
+
+    z-index: 999999 !important;
+
+    overflow-y: auto;
+}
+
+
+/* Modal fechado */
+
+#appointment-modal.hidden {
+    display: none !important;
+}
+
+
+/* Caixa branca */
+
+#appointment-modal .appointment-modal {
+    position: relative !important;
+
+    width: 100% !important;
+
+    max-width: 500px !important;
+
+    max-height: calc(100vh - 40px);
+
+    margin: auto !important;
+
+    background: #ffffff;
+
+    border-radius: 16px;
+
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.30);
+
+    overflow-y: auto;
+
+    box-sizing: border-box;
+
+    flex-shrink: 0;
+
+    animation: appointmentModalIn 0.2s ease-out;
+}
+
+
+/* =========================================================
+   ANIMAÇÃO DO MODAL
+   ========================================================= */
+
+@keyframes appointmentModalIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(10px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   CABEÇALHO DO MODAL
+   ========================================================= */
+
+#appointment-modal .modal-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 24px;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+
+#appointment-modal .modal-header h3 {
+    margin: 0 0 6px;
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+    color: #111827;
+}
+
+
+#appointment-modal .modal-header p {
+    margin: 0;
+
+    color: #6b7280;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   BOTÃO FECHAR
+   ========================================================= */
+
+#appointment-modal .modal-close {
+    width: 36px;
+    height: 36px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: #6b7280;
+
+    font-size: 26px;
+
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+
+#appointment-modal .modal-close:hover {
+    background: #f3f4f6;
+
+    color: #111827;
+}
+
+
+/* =========================================================
+   FORMULÁRIO
+   ========================================================= */
+
+#appointment-modal #appointment-form {
+    padding: 24px;
+}
+
+
+#appointment-modal .form-group {
+    margin-bottom: 18px;
+}
+
+
+#appointment-modal .form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: #374151;
+}
+
+
+#appointment-modal .form-group input,
+#appointment-modal .form-group select {
+    width: 100%;
+
+    height: 44px;
+
+    padding: 0 12px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #111827;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+}
+
+
+#appointment-modal .form-group input:focus,
+#appointment-modal .form-group select:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+
+/* =========================================================
+   ERRO
+   ========================================================= */
+
+#appointment-modal .form-error {
+    margin-bottom: 18px;
+
+    padding: 12px 14px;
+
+    border-radius: 8px;
+
+    background: #fef2f2;
+
+    border: 1px solid #fecaca;
+
+    color: #b91c1c;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   BOTÕES DO MODAL
+   ========================================================= */
+
+#appointment-modal .modal-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 24px;
+}
+
+
+#appointment-modal .modal-actions button {
+    min-height: 42px;
+
+    padding: 0 18px;
+
+    border-radius: 8px;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+#appointment-modal .button-secondary {
+    border: 1px solid #d1d5db;
+
+    background: #ffffff;
+
+    color: #374151;
+}
+
+
+#appointment-modal .button-secondary:hover {
+    background: #f9fafb;
+}
+
+
+#appointment-modal .button-primary {
+    border: 1px solid #2563eb;
+
+    background: #2563eb;
+
+    color: #ffffff;
+}
+
+
+#appointment-modal .button-primary:hover {
+    background: #1d4ed8;
+}
+
+
+#appointment-modal .button-primary:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   HIDDEN
+   ========================================================= */
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =========================================================
+   RESPONSIVO
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .agenda-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+
+    .agenda-navigation {
+        width: 100%;
+    }
+
+
+    .agenda-navigation input {
+        flex: 1;
+    }
+
+
+    .agenda-slot {
+        grid-template-columns: 65px 1fr;
+    }
+
+
+    .agenda-time {
+        font-size: 12px;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    #appointment-modal {
+        padding: 12px !important;
+    }
+
+
+    #appointment-modal .appointment-modal {
+        max-width: 100% !important;
+
+        max-height: calc(100vh - 24px);
+
+        border-radius: 14px;
+    }
+
+
+    #appointment-modal .modal-header {
+        padding: 20px 18px 16px;
+    }
+
+
+    #appointment-modal #appointment-form {
+        padding: 18px;
+    }
+
+
+    #appointment-modal .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+
+    #appointment-modal .button-primary,
+    #appointment-modal .button-secondary {
+        width: 100%;
+    }
+}
+
+.agenda-slot.unavailable {
+    background: #f8fafc;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.agenda-slot.unavailable .agenda-content {
+    color: #94a3b8;
+}
+
+.agenda-slot.unavailable:hover {
+    background: #f8fafc;
+}
+
+/* =========================================================
+   AGENDAMENTO OCUPANDO TODO O PERÍODO
+   ========================================================= */
+
+/*
+   Linhas com altura fixa para que o card do agendamento
+   cubra exatamente os horários que ele ocupa
+   (ex.: 13:00 às 14:00 = 2 linhas de 30 min).
+*/
+
+.agenda-slot {
+    box-sizing: border-box;
+
+    height: 92px;
+    min-height: 92px;
+}
+
+.agenda-slot .agenda-time {
+    padding-top: 16px;
+}
+
+.agenda-slot.occupied {
+    cursor: default;
+}
+
+.agenda-slot .appointment-card {
+    position: absolute;
+
+    top: 8px;
+    left: 16px;
+    right: 16px;
+
+    z-index: 2;
+
+    box-sizing: border-box;
+
+    height: calc(var(--slots, 1) * 92px - 16px);
+
+    padding: 8px 16px;
+
+    overflow: hidden;
+}
+
+.agenda-slot .appointment-card .appointment-time {
+    margin-top: 4px;
+}

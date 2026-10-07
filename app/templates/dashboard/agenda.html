@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Agenda | TechLegacy Agendamento</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/agenda.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h1>TechLegacy</h1>
+                <span>Agendamento</span>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/dashboard/admin" class="nav-item">
+                    <span>📊</span>
+                    <span>Visão geral</span>
+                </a>
+
+                <a href="/dashboard/admin/agenda" class="nav-item active">
+                    <span>📅</span>
+                    <span>Agenda</span>
+                </a>
+
+                <a href="/dashboard/admin/servicos" class="nav-item">
+                    <span>✂️</span>
+                    <span>Serviços</span>
+                </a>
+
+                <a href="/dashboard/admin/horarios" class="nav-item">
+                    <span>🕐</span>
+                    <span>Horários</span>
+                </a>
+
+                <a href="/dashboard/admin/configuracoes" class="nav-item">
+                    <span>⚙️</span>
+                    <span>Configurações</span>
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+
+                <button type="button">
+                    Sair
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <main class="main-content">
+
+            <header class="topbar">
+
+                <div>
+                    <h2>Agenda</h2>
+
+                    <p>
+                        Consulte os horários e agendamentos.
+                    </p>
+                </div>
+
+                <div class="user-area">
+
+                    <div class="user-info">
+                        <strong>Usuário</strong>
+                        <span>Administrador</span>
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <section class="content">
+
+                <section class="panel agenda-panel">
+
+                    <div class="agenda-header">
+
+                        <div>
+
+                            <h3 id="agenda-title">
+                                Agenda
+                            </h3>
+
+                            <p id="agenda-subtitle">
+                                Carregando...
+                            </p>
+
+                        </div>
+
+                        <div class="agenda-navigation">
+
+                            <button type="button" id="previous-day">
+                                ←
+                            </button>
+
+                            <input type="date" id="agenda-date">
+
+                            <button type="button" id="next-day">
+                                →
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="schedule-status" class="schedule-status">
+                    </div>
+
+
+                    <div id="agenda-list" class="agenda-list">
+
+                        <div class="empty-state">
+
+                            <span>📅</span>
+
+                            <h4>
+                                Carregando agenda...
+                            </h4>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
+
+    </div>
+    <div id="appointment-modal" class="modal-overlay hidden">
+
+        <div class="appointment-modal">
+
+            <div class="modal-header">
+
+                <div>
+                    <h3>Novo agendamento</h3>
+
+                    <p id="modal-slot-info">
+                        Preencha os dados do cliente.
+                    </p>
+                </div>
+
+                <button type="button" id="close-modal" class="modal-close" aria-label="Fechar">
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="appointment-form">
+
+                <div class="form-group">
+
+                    <label for="customer-name">
+                        Nome do cliente
+                    </label>
+
+                    <input type="text" id="customer-name" name="customer_name" placeholder="Ex.: João Silva" required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="customer-phone">
+                        Telefone
+                    </label>
+
+                    <input type="tel" id="customer-phone" name="customer_phone" placeholder="Ex.: 11999999999" required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="appointment-service">
+                        Serviço
+                    </label>
+
+                    <select id="appointment-service" name="service_id" required>
+
+                        <option value="">
+                            Carregando serviços...
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div id="appointment-error" class="form-error hidden"></div>
+
+
+                <div class="modal-actions">
+
+                    <button type="button" id="cancel-modal" class="button-secondary">
+                        Cancelar
+                    </button>
+
+
+                    <button type="submit" id="save-appointment" class="button-primary">
+                        Agendar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/agenda.js') }}"></script>
+
+</body>
+
+</html>

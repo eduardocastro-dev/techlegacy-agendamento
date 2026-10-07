@@ -1,0 +1,302 @@
+.settings-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.settings-card-header {
+    margin-bottom: 24px;
+}
+
+.settings-card-header h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+}
+
+.settings-card-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.settings-form {
+    width: 100%;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group-full {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.form-group input {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 11px 12px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+
+/* LINK PÚBLICO */
+
+.public-link-box {
+    padding: 16px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.public-link-label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    color: #64748b;
+}
+
+.public-link-box a {
+    color: #2563eb;
+
+    font-size: 14px;
+
+    text-decoration: none;
+
+    word-break: break-all;
+}
+
+.public-link-box a:hover {
+    text-decoration: underline;
+}
+
+
+/* AÇÕES */
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 24px;
+}
+
+.btn-primary {
+    border: none;
+    border-radius: 8px;
+
+    padding: 11px 18px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* MENSAGEM */
+
+.settings-message {
+    margin-top: 20px;
+
+    padding: 12px 14px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+}
+
+.settings-message.success {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.settings-message.error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+
+/* INFORMAÇÕES */
+
+.account-info-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    gap: 20px;
+}
+
+.info-item {
+    padding: 16px;
+
+    background: #f8fafc;
+
+    border-radius: 8px;
+
+    border: 1px solid #e2e8f0;
+}
+
+.info-label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+.info-item strong {
+    color: #1e293b;
+
+    font-size: 14px;
+}
+
+
+/* RESPONSIVO */
+
+@media (max-width: 768px) {
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group-full {
+        grid-column: auto;
+    }
+
+    .account-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        justify-content: stretch;
+    }
+
+    .btn-primary {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   DADOS DA CONTA
+   ========================================================= */
+
+#account-form {
+    margin-top: 8px;
+}
+
+
+/* =========================================================
+   SEGURANÇA
+   ========================================================= */
+
+#password-form {
+    margin-top: 8px;
+}
+
+
+/* =========================================================
+   CAMPOS SOMENTE LEITURA
+   ========================================================= */
+
+.form-group input[readonly] {
+    background: #f8fafc;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   MENSAGENS DOS FORMULÁRIOS
+   ========================================================= */
+
+.settings-message {
+    margin-top: 20px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.settings-message.success {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.settings-message.error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+
+/* =========================================================
+   BOTÕES DURANTE ENVIO
+   ========================================================= */
+
+button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | TechLegacy Agendamento</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h1>TechLegacy</h1>
+                <span>Agendamento</span>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="/dashboard/admin" class="nav-item active">
+                    <span>📊</span>
+                    <span>Visão geral</span>
+                </a>
+
+                <a href="/dashboard/admin/agenda" class="nav-item">
+                    <span>📅</span>
+                    <span>Agenda</span>
+                </a>
+
+                <a href="/dashboard/admin/servicos" class="nav-item">
+                    <span>✂️</span>
+                    <span>Serviços</span>
+                </a>
+
+                <a href="/dashboard/admin/horarios" class="nav-item">
+                    <span>🕐</span>
+                    <span>Horários</span>
+                </a>
+
+                <a href="/dashboard/admin/configuracoes" class="nav-item">
+                    <span>⚙️</span>
+                    <span>Configurações</span>
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+
+                <button type="button">
+                    Sair
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Conteúdo principal -->
+        <main class="main-content">
+
+            <!-- Header -->
+            <header class="topbar">
+
+                <div>
+                    <h2>Visão geral</h2>
+                    <p id="topbar-date">Confira o resumo do seu estabelecimento.</p>
+                </div>
+
+                <div class="user-area">
+
+                    <div class="user-info">
+                        <strong>Usuário</strong>
+                        <span>Administrador</span>
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- Conteúdo -->
+            <section class="content">
+
+                <!-- Cards -->
+                <div class="cards">
+
+                    <div class="card">
+
+                        <div class="card-body">
+                            <span class="card-label">
+                                Agendamentos hoje
+                            </span>
+
+                            <strong class="card-value" id="appointments-today">
+                                0
+                            </strong>
+                        </div>
+
+                        <span class="card-icon blue">📅</span>
+
+                    </div>
+
+
+                    <div class="card">
+
+                        <div class="card-body">
+                            <span class="card-label">
+                                Próximos agendamentos
+                            </span>
+
+                            <strong class="card-value" id="upcoming-appointments">
+                                0
+                            </strong>
+                        </div>
+
+                        <span class="card-icon purple">⏰</span>
+
+                    </div>
+
+
+                    <div class="card">
+
+                        <div class="card-body">
+                            <span class="card-label">
+                                Serviços ativos
+                            </span>
+
+                            <strong class="card-value" id="active-services">
+                                0
+                            </strong>
+                        </div>
+
+                        <span class="card-icon green">✂️</span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Agendamentos (abas) -->
+                <section class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h3>Agendamentos</h3>
+                            <p>Acompanhe os atendimentos de hoje e de amanhã.</p>
+                        </div>
+
+                        <a href="/dashboard/admin/agenda" class="btn-link">
+                            Ver agenda
+                            <span aria-hidden="true">→</span>
+                        </a>
+
+                    </div>
+
+
+                    <div class="panel-tabs" role="tablist" aria-label="Período dos agendamentos">
+
+                        <button type="button" class="tab active" role="tab" id="tab-today" data-tab="today"
+                            aria-selected="true" aria-controls="appointments-list">
+                            <span class="tab-label">Hoje</span>
+                            <span class="tab-count" id="count-today">–</span>
+                        </button>
+
+                        <button type="button" class="tab" role="tab" id="tab-tomorrow" data-tab="tomorrow"
+                            aria-selected="false" aria-controls="appointments-list">
+                            <span class="tab-label">Amanhã</span>
+                            <span class="tab-count" id="count-tomorrow">–</span>
+                        </button>
+
+                        <span class="tab-date" id="tab-date"></span>
+
+                    </div>
+
+
+                    <div class="appointments" id="appointments-list" role="tabpanel">
+
+                        <div class="skeleton"></div>
+                        <div class="skeleton"></div>
+                        <div class="skeleton"></div>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+
+</html>
