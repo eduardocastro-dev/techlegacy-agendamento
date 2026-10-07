@@ -9,6 +9,7 @@ from .schedules.routes import schedules_bp
 from .schedule_exceptions.routes import schedule_exceptions_bp
 from .appointments.routes import appointments_bp
 from .auth.routes import auth_bp
+from app.auth.views import auth_views_bp
 from .dashboard.routes import dashboard_bp
 from .settings.routes import settings_bp
 
@@ -26,6 +27,7 @@ def create_app(test_config=None):
     jwt.init_app(app)
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(auth_views_bp)
     app.register_blueprint(services_bp)
     app.register_blueprint(schedules_bp)
     app.register_blueprint(schedule_exceptions_bp)

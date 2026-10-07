@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cadastro | TechLegacy Agendamento</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cadastro.css') }}">
+
+</head>
+
+
+<body>
+
+    <main class="register-page">
+
+        <section class="register-card">
+
+            <div class="register-header">
+
+                <div class="brand">
+
+                    <h1>TechLegacy</h1>
+
+                    <span>Agendamento</span>
+
+                </div>
+
+
+                <h2>Criar sua conta</h2>
+
+                <p>
+                    Comece seu teste gratuito de 30 dias.
+                </p>
+
+            </div>
+
+
+            <form id="register-form" class="register-form">
+
+                <div class="form-group">
+
+                    <label for="establishment-name">
+                        Nome do estabelecimento
+                    </label>
+
+                    <input type="text" id="establishment-name" name="establishment_name"
+                        placeholder="Ex.: Barbearia Tech" autocomplete="organization" maxlength="120" required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="slug">
+                        Identificador público
+                    </label>
+
+                    <input type="text" id="slug" name="slug" placeholder="Ex.: barbearia-tech" autocomplete="off"
+                        maxlength="120" required>
+
+                    <small>
+                        Use apenas letras, números e hífen.
+                    </small>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="phone">
+                        Telefone
+                    </label>
+
+                    <input type="tel" id="phone" name="phone" placeholder="(11) 99999-9999" autocomplete="tel"
+                        maxlength="20">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="email">
+                        E-mail
+                    </label>
+
+                    <input type="email" id="email" name="email" placeholder="seu@email.com" autocomplete="email"
+                        maxlength="255" required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Senha
+                    </label>
+
+                    <input type="password" id="password" name="password" placeholder="Mínimo de 6 caracteres"
+                        autocomplete="new-password" required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="confirm-password">
+                        Confirmar senha
+                    </label>
+
+                    <input type="password" id="confirm-password" name="confirm_password"
+                        placeholder="Digite a senha novamente" autocomplete="new-password" required>
+
+                </div>
+
+
+                <div id="register-message" class="register-message" hidden></div>
+
+
+                <button type="submit" id="register-button" class="register-button">
+                    Criar conta
+                </button>
+
+            </form>
+
+
+            <div class="register-footer">
+
+                <span>Já possui uma conta?</span>
+
+                <a href="/login">
+                    Entrar
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="{{ url_for('static', filename='js/cadastro.js') }}"></script>
+
+</body>
+
+</html>

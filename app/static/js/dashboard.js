@@ -629,3 +629,13 @@ function escapeHtml(value) {
 
     return div.innerHTML;
 }
+
+const logoutButton = document.getElementById("logout-button");
+
+if (logoutButton) {
+    logoutButton.addEventListener("click", () => {
+        sessionStorage.removeItem("access_token");
+
+        window.location.href = "/login";
+    });
+}
