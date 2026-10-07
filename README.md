@@ -12,6 +12,8 @@ O sistema está sendo desenvolvido de forma incremental, com foco em organizaç�
 
 O TechLegacy Agendamento pretende permitir que um estabelecimento:
 
+- Cadastre sua conta;
+- Utilize um período de teste gratuito;
 - Cadastre seus serviços;
 - Configure seus horários de atendimento;
 - Defina exceções de agenda;
@@ -19,93 +21,59 @@ O TechLegacy Agendamento pretende permitir que um estabelecimento:
 - Receba agendamentos;
 - Gerencie seus horários;
 - Disponibilize uma página pública para seus clientes;
-- Acompanhe seus agendamentos através de um dashboard.
+- Acompanhe seus agendamentos através de um dashboard;
+- Configure informações do estabelecimento;
+- Gerencie sua conta e credenciais.
 
 A primeira versão está sendo desenvolvida como um **monólito modular**, mantendo os domínios organizados para permitir evolução futura.
-
----
-
-## 🏗️ Arquitetura
-
-A arquitetura utiliza um monólito modular baseado em Flask.
-
-```text
-                         ┌─────────────────────┐
-                         │       Cliente       │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼
-                         ┌─────────────────────┐
-                         │      Flask API      │
-                         └──────────┬──────────┘
-                                    │
-              ┌─────────────────────┼─────────────────────┐
-              │                     │                     │
-              ▼                     ▼                     ▼
-        Authentication        Business Rules        Public Booking
-              │                     │                     │
-              ▼                     ▼                     ▼
-         Multi-tenancy        Appointments           Future
-              │                     │
-              └─────────────────────┼─────────────────────┘
-                                    │
-                                    ▼
-                               PostgreSQL
-```
-
-Mais detalhes:
-
-- [Arquitetura](docs/architecture.md)
-- [Banco de dados](docs/database.md)
-- [Regras de negócio](docs/business-rules.md)
-- [API](docs/api.md)
-- [Desenvolvimento](docs/development.md)
-- [Roadmap](docs/roadmap.md)
 
 ---
 
 ## 🛠️ Stack
 
 ### Backend
-
 - Python 3.11
 - Flask
 - SQLAlchemy
 - Flask-Migrate
 - Alembic
 - Flask-JWT-Extended
+- Werkzeug
+
+### Frontend
+- HTML5
+- CSS3
+- JavaScript
+- Fetch API
+- Session Storage
 
 ### Banco de dados
-
 - PostgreSQL 16
 
 ### Infraestrutura
-
 - Docker
 - Docker Compose
 
 ### Testes
-
 - Pytest
 
 ### Planejado
-
 - GitHub Actions
 - CI/CD
 - Deploy no servidor Contabo
 - HTTPS
 - Monitoramento
+- Backup
 - Integrações externas
 - Notificações
 
 ---
 
-## 📌 Status atual
+# 📌 Status atual
 
 🚧 **Projeto em desenvolvimento**
 
-### Fase 1 — Fundação
-
+## Fase 1 — Fundação
 - [x] Estrutura inicial
 - [x] Flask
 - [x] Configuração de ambiente
@@ -115,8 +83,7 @@ Mais detalhes:
 - [x] Endpoint `/health`
 - [x] Estrutura inicial de testes
 
-### Fase 2 — Núcleo de negócio
-
+## Fase 2 — Núcleo de negócio
 - [x] Models
 - [x] SQLAlchemy
 - [x] PostgreSQL
@@ -136,8 +103,7 @@ Mais detalhes:
 - [x] Soft delete de Services
 - [x] Testes automatizados
 
-### Fase 3 — API REST
-
+## Fase 3 — API REST
 - [x] API de Services
 - [x] API de Schedules
 - [x] API de Schedule Exceptions
@@ -147,8 +113,7 @@ Mais detalhes:
 - [x] Isolamento por estabelecimento
 - [x] Testes automatizados dos endpoints
 
-### Fase 4 — Autenticação e Multi-tenancy
-
+## Fase 4 — Autenticação e Multi-tenancy
 - [x] Cadastro de usuário
 - [x] Login
 - [x] JWT
@@ -159,19 +124,38 @@ Mais detalhes:
 - [x] Testes de autenticação
 - [x] Testes de isolamento entre tenants
 - [x] Padronização de timezone nos horários de agendamento
+- [x] Trial gratuito de 30 dias
 
-### Fase 5 — Dashboard
+## Fase 5 — Dashboard e Área Administrativa
+- [x] Dashboard administrativo
+- [x] Gerenciamento de serviços
+- [x] Gerenciamento de horários
+- [x] Gerenciamento de exceções de agenda
+- [x] Visualização da agenda
+- [x] Gerenciamento de agendamentos
+- [x] Visão geral do estabelecimento
+- [x] Configurações do estabelecimento
+- [x] Configuração de dados da conta
+- [x] Alteração de senha
+- [x] Logout
+- [x] Interface administrativa
+- [x] Validação de dados no frontend
+- [x] Integração frontend com API
 
-- [ ] Dashboard administrativo
-- [ ] Gerenciamento de serviços
-- [ ] Gerenciamento de horários
-- [ ] Gerenciamento de agendamentos
-- [ ] Visão geral do estabelecimento
-- [ ] Personalização básica
+## Fase 5.5 — Interface de Autenticação
+- [x] Página de login
+- [x] Página de cadastro
+- [x] Validação de formulário
+- [x] Integração com API de autenticação
+- [x] Armazenamento do JWT no navegador
+- [x] Redirecionamento após login
+- [x] Redirecionamento após cadastro
+- [x] Mensagens de sucesso e erro
+- [x] Identidade visual consistente com o dashboard
 
-### Fase 6 — Agendamento público
-
+## Fase 6 — Agendamento público
 - [ ] Página pública do estabelecimento
+- [ ] Identificação do estabelecimento por slug
 - [ ] Seleção de serviço
 - [ ] Consulta de disponibilidade
 - [ ] Seleção de data
@@ -179,18 +163,19 @@ Mais detalhes:
 - [ ] Cadastro do cliente
 - [ ] Criação do agendamento
 - [ ] Confirmação
+- [ ] Tratamento de conflitos em tempo real
 
-### Fase 7 — Qualidade e Segurança
-
+## Fase 7 — Qualidade e Segurança
 - [ ] Lint
 - [ ] Padronização de código
 - [ ] Logging
 - [ ] Revisão de segurança
 - [ ] Testes de integração
 - [ ] Testes de cenários críticos
+- [ ] Rate limiting
+- [ ] Melhorias no tratamento de erros
 
-### Fase 8 — CI/CD e Automação de Pipeline
-
+## Fase 8 — CI/CD e Automação de Pipeline
 - [ ] GitHub Actions
 - [ ] Lint automatizado
 - [ ] Execução de testes no Pull Request
@@ -199,28 +184,28 @@ Mais detalhes:
 - [ ] Pipeline CD
 - [ ] Deploy automatizado
 
-### Fase 9 — Produção
-
+## Fase 9 — Produção
 - [ ] Configuração do ambiente de produção
-- [ ] Deploy no servidor
+- [ ] Deploy no servidor Contabo
 - [ ] Banco de produção
 - [ ] Variáveis de ambiente
 - [ ] HTTPS
 - [ ] Monitoramento
 - [ ] Backup
+- [ ] Estratégia de recuperação
 
-### Fase 10 — Evolução SaaS e ML
-
+## Fase 10 — Evolução SaaS e ML
 - [ ] Evolução para modelo SaaS
 - [ ] Métricas de uso
 - [ ] Previsão de demanda
 - [ ] Insights sobre agendamentos
 - [ ] Experimentação com modelos de Machine Learning
 - [ ] Monitoramento de modelos
+- [ ] Automação de pipelines de ML
 
 ---
 
-## 🔐 Autenticação e Multi-tenancy
+# 🔐 Autenticação e Multi-tenancy
 
 A área administrativa utiliza autenticação baseada em JWT.
 
@@ -228,11 +213,51 @@ O usuário autenticado está associado a um estabelecimento e o contexto do esta
 
 Dessa forma, endpoints administrativos não dependem de `establishment_id` enviado pelo cliente para determinar o tenant.
 
-O sistema também possui testes de isolamento para garantir que um usuário de um estabelecimento não consiga acessar agendamentos pertencentes a outro estabelecimento.
+O sistema também possui testes de isolamento para garantir que um usuário de um estabelecimento não consiga acessar recursos pertencentes a outro estabelecimento.
+
+### Fluxo de autenticação
+
+```text
+Cadastro
+   │
+   ▼
+Establishment + User
+   │
+   ▼
+Trial de 30 dias
+   │
+   ▼
+Login
+   │
+   ▼
+JWT
+   │
+   ▼
+Dashboard
+   │
+   ├── Serviços
+   ├── Agenda
+   ├── Horários
+   └── Configurações
+```
 
 ---
 
-## 🗄️ Banco de dados
+# 🏢 Trial gratuito
+
+Durante o cadastro, o estabelecimento recebe automaticamente um período de teste de **30 dias**.
+
+O término do período é armazenado no campo:
+
+```text
+Establishment.trial_ends_at
+```
+
+O período é calculado no momento da criação do estabelecimento.
+
+---
+
+# 🗄️ Banco de dados
 
 O projeto utiliza PostgreSQL 16.
 
@@ -269,7 +294,7 @@ Mais detalhes:
 
 ---
 
-## ⏰ Disponibilidade
+# ⏰ Disponibilidade
 
 A regra de disponibilidade considera:
 
@@ -282,7 +307,9 @@ A regra de disponibilidade considera:
 - Exceções de agenda;
 - Estabelecimento fechado;
 - Agendamentos existentes;
-- Conflitos de horário.
+- Conflitos de horário;
+- Agendamentos cancelados;
+- Exclusão de agendamento durante edição, quando aplicável.
 
 A implementação principal está localizada em:
 
@@ -292,7 +319,50 @@ app/core/availability.py
 
 ---
 
-## 🧩 API
+# 🧩 Dashboard
+
+A área administrativa possui uma interface web integrada à API.
+
+Principais áreas:
+
+```text
+Dashboard
+   │
+   ├── Visão geral
+   ├── Agenda
+   ├── Serviços
+   ├── Horários
+   └── Configurações
+```
+
+### Serviços
+
+Permite criar, consultar, editar e desativar serviços.
+
+### Horários
+
+Permite configurar horários semanais, abertura, fechamento, dias ativos, exceções e dias fechados.
+
+### Configurações
+
+Permite gerenciar nome do estabelecimento, telefone, identificador público, e-mail e senha.
+
+---
+
+# 🔑 Interface de autenticação
+
+O sistema possui interfaces próprias para autenticação:
+
+```text
+/login
+/cadastro
+```
+
+Após autenticação, o JWT é armazenado no `sessionStorage` do navegador e o usuário é direcionado para o dashboard.
+
+---
+
+# 🧩 API
 
 Principais recursos implementados:
 
@@ -300,6 +370,9 @@ Principais recursos implementados:
 /auth
     POST /auth/register
     POST /auth/login
+
+/dashboard
+    GET /dashboard
 
 /services
     POST   /services
@@ -315,12 +388,30 @@ Principais recursos implementados:
     PUT    /schedules/<id>
     DELETE /schedules/<id>
 
+/schedule-exceptions
+    POST   /schedule-exceptions
+    GET    /schedule-exceptions
+    GET    /schedule-exceptions/<id>
+    PUT    /schedule-exceptions/<id>
+    DELETE /schedule-exceptions/<id>
+
 /appointments
     POST   /appointments
     GET    /appointments
     GET    /appointments/<id>
     PUT    /appointments/<id>
     DELETE /appointments/<id>
+
+/settings
+    GET /settings
+    PUT /settings
+
+/settings/account
+    GET /settings/account
+    PUT /settings/account
+
+/settings/password
+    PUT /settings/password
 ```
 
 Os endpoints administrativos são protegidos por JWT e utilizam o estabelecimento associado ao usuário autenticado.
@@ -331,7 +422,7 @@ Mais detalhes:
 
 ---
 
-## 🧪 Testes
+# 🧪 Testes
 
 O projeto utiliza Pytest.
 
@@ -341,29 +432,11 @@ Executar todos os testes:
 pytest -v
 ```
 
-Os testes cobrem:
-
-- Health check;
-- Disponibilidade;
-- Conflitos de horário;
-- Exceções de horário;
-- Criação de serviços;
-- Listagem;
-- Consulta individual;
-- Atualização;
-- Atualização parcial;
-- Exclusão lógica;
-- Recursos inexistentes;
-- Autenticação;
-- Autorização;
-- Isolamento entre estabelecimentos;
-- Criação e gerenciamento de agendamentos;
-- Cancelamento e reativação de agendamentos;
-- Validação de horários e timezone.
+Os testes cobrem health check, disponibilidade, serviços, horários, exceções, agendamentos, autenticação, autorização, isolamento entre estabelecimentos, timezone e configurações de conta.
 
 ---
 
-## 🐳 Executando com Docker
+# 🐳 Executando com Docker
 
 Subir a aplicação:
 
@@ -389,6 +462,18 @@ Health check:
 http://localhost:5000/health
 ```
 
+Login:
+
+```text
+http://localhost:5000/login
+```
+
+Cadastro:
+
+```text
+http://localhost:5000/cadastro
+```
+
 Para parar:
 
 ```bash
@@ -397,7 +482,7 @@ docker compose down
 
 ---
 
-## 🗃️ Migrations
+# 🗃️ Migrations
 
 Criar uma migration:
 
@@ -431,20 +516,28 @@ Estado atual da cadeia de migrations:
 
 ---
 
-## 📁 Estrutura do projeto
+# 📁 Estrutura do projeto
 
 ```text
 techlegacy-agendamento/
 │
 ├── app/
 │   ├── auth/
+│   │   ├── __init__.py
 │   │   ├── routes.py
+│   │   ├── views.py
 │   │   ├── context.py
 │   │   └── decorators.py
 │   │
 │   ├── core/
 │   │   ├── availability.py
 │   │   └── errors.py
+│   │
+│   ├── dashboard/
+│   │   ├── __init__.py
+│   │   ├── routes.py
+│   │   ├── service.py
+│   │   └── agenda_service.py
 │   │
 │   ├── models/
 │   │   ├── __init__.py
@@ -457,11 +550,41 @@ techlegacy-agendamento/
 │   │
 │   ├── services/
 │   │   └── routes.py
-│   │
 │   ├── appointments/
 │   │   ├── routes.py
 │   │   └── validation.py
-│   │
+│   ├── settings/
+│   │   ├── __init__.py
+│   │   ├── routes.py
+│   │   ├── service.py
+│   │   └── validation.py
+│   ├── templates/
+│   │   ├── auth/
+│   │   │   ├── login.html
+│   │   │   └── cadastro.html
+│   │   └── dashboard/
+│   │       ├── index.html
+│   │       ├── agenda.html
+│   │       ├── services.html
+│   │       ├── horarios.html
+│   │       └── configuracoes.html
+│   ├── static/
+│   │   ├── css/
+│   │   │   ├── dashboard.css
+│   │   │   ├── agenda.css
+│   │   │   ├── services.css
+│   │   │   ├── horarios.css
+│   │   │   ├── configuracoes.css
+│   │   │   ├── login.css
+│   │   │   └── cadastro.css
+│   │   └── js/
+│   │       ├── dashboard.js
+│   │       ├── agenda.js
+│   │       ├── services.js
+│   │       ├── horarios.js
+│   │       ├── configuracoes.js
+│   │       ├── login.js
+│   │       └── cadastro.js
 │   ├── config.py
 │   ├── extensions.py
 │   └── __init__.py
@@ -475,7 +598,6 @@ techlegacy-agendamento/
 │   └── roadmap.md
 │
 ├── migrations/
-│
 ├── tests/
 │   ├── conftest.py
 │   ├── test_availability.py
@@ -483,7 +605,9 @@ techlegacy-agendamento/
 │   ├── test_services.py
 │   ├── test_schedules.py
 │   ├── test_schedule_exceptions.py
-│   └── test_appointments.py
+│   ├── test_appointments.py
+│   ├── test_settings_account.py
+│   └── test_settings_password.py
 │
 ├── .env.example
 ├── .gitignore
@@ -495,7 +619,7 @@ techlegacy-agendamento/
 
 ---
 
-## 📚 Documentação
+# 📚 Documentação
 
 | Documento | Descrição |
 |---|---|
@@ -508,38 +632,49 @@ techlegacy-agendamento/
 
 ---
 
-## 🔄 Fluxo de desenvolvimento
+# 🔄 Fluxo de desenvolvimento
 
 O fluxo adotado para novas funcionalidades é:
 
 ```text
-Alterar código
-      │
-      ▼
+Definir funcionalidade
+       │
+       ▼
+Implementar código
+       │
+       ▼
 Criar/atualizar testes
-      │
-      ▼
+       │
+       ▼
 Executar pytest
-      │
-      ▼
+       │
+       ▼
 Alterar models, se necessário
-      │
-      ▼
-Criar migration
-      │
-      ▼
+       │
+       ▼
+Criar migration, se necessário
+       │
+       ▼
 Aplicar migration
-      │
-      ▼
+       │
+       ▼
 Executar testes novamente
-      │
-      ▼
+       │
+       ▼
+Revisar código
+       │
+       ▼
 Commit
+       │
+       ▼
+Push
 ```
+
+Com a implementação futura de CI/CD, parte dessas validações será automatizada através do GitHub Actions.
 
 ---
 
-## 🎯 Princípios do projeto
+# 🎯 Princípios do projeto
 
 O desenvolvimento segue alguns princípios:
 
@@ -553,11 +688,12 @@ O desenvolvimento segue alguns princípios:
 - Preparação para CI/CD;
 - Arquitetura preparada para multi-tenancy;
 - Segurança e isolamento por tenant;
+- Frontend simples integrado à API;
 - Manter ML como evolução do produto, não como complexidade prematura do MVP.
 
 ---
 
-## 📄 Licença
+# 📄 Licença
 
 Projeto desenvolvido para fins de estudo, portfólio e evolução profissional.
 
