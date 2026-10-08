@@ -154,16 +154,16 @@ A primeira versão está sendo desenvolvida como um **monólito modular**, mante
 - [x] Identidade visual consistente com o dashboard
 
 ## Fase 6 — Agendamento público
-- [ ] Página pública do estabelecimento
-- [ ] Identificação do estabelecimento por slug
-- [ ] Seleção de serviço
-- [ ] Consulta de disponibilidade
-- [ ] Seleção de data
-- [ ] Seleção de horário
-- [ ] Cadastro do cliente
-- [ ] Criação do agendamento
-- [ ] Confirmação
-- [ ] Tratamento de conflitos em tempo real
+- [x] Página pública do estabelecimento
+- [x] Identificação do estabelecimento por slug
+- [x] Seleção de serviço
+- [x] Consulta de disponibilidade
+- [x] Seleção de data
+- [x] Seleção de horário
+- [x] Cadastro do cliente
+- [x] Criação do agendamento
+- [x] Confirmação
+- [x] Tratamento de conflitos em tempo real
 
 ## Fase 7 — Qualidade e Segurança
 - [ ] Lint
