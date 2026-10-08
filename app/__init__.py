@@ -12,6 +12,7 @@ from .auth.routes import auth_bp
 from app.auth.views import auth_views_bp
 from .dashboard.routes import dashboard_bp
 from .settings.routes import settings_bp
+from app.public import public_bp
 
 
 def create_app(test_config=None):
@@ -34,6 +35,7 @@ def create_app(test_config=None):
     app.register_blueprint(appointments_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(public_bp)
 
     from .models import Establishment
 

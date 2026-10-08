@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Agendamento | {{ establishment.name }}
+    </title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/public-agendamento.css') }}">
+</head>
+
+<body>
+
+    <main class="booking-page" data-establishment-slug="{{ establishment.slug }}">
+
+        <section class="booking-container">
+
+            <header class="booking-header">
+
+                <div class="brand">
+                    <span class="brand-name">TechLegacy</span>
+                    <span class="brand-product">Agendamento</span>
+                </div>
+
+                <h1>
+                    {{ establishment.name }}
+                </h1>
+
+                <p>
+                    Agende seu horário de forma rápida e simples.
+                </p>
+
+            </header>
+
+
+            <!-- ETAPA 1: SERVIÇO -->
+
+            <section class="services-section">
+
+                <div class="section-header">
+
+                    <h2>
+                        Escolha um serviço
+                    </h2>
+
+                    <p>
+                        Selecione o serviço que deseja agendar.
+                    </p>
+
+                </div>
+
+                {% if services %}
+
+                <div class="services-list">
+
+                    {% for service in services %}
+
+                    <article class="service-card" data-service-id="{{ service.id }}"
+                        data-service-name="{{ service.name }}" data-service-duration="{{ service.duration_minutes }}"
+                        data-service-price="{{ service.price }}" tabindex="0">
+
+                        <div class="service-info">
+
+                            <h3>
+                                {{ service.name }}
+                            </h3>
+
+                            {% if service.description %}
+
+                            <p>
+                                {{ service.description }}
+                            </p>
+
+                            {% endif %}
+
+                            <span class="service-duration">
+                                {{ service.duration_minutes }} minutos
+                            </span>
+
+                        </div>
+
+                        <div class="service-price">
+
+                            <strong>
+                                R$ {{ "%.2f"|format(service.price)|replace(".", ",") }}
+                            </strong>
+
+                        </div>
+
+                        <div class="service-selection">
+
+                            <span class="selection-indicator">
+                                Selecionar
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                    {% endfor %}
+
+                </div>
+
+                {% else %}
+
+                <div class="empty-state">
+
+                    <h3>
+                        Nenhum serviço disponível
+                    </h3>
+
+                    <p>
+                        Este estabelecimento ainda não possui serviços disponíveis para agendamento.
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            </section>
+
+
+            {% if services %}
+
+            <!-- SERVIÇO SELECIONADO -->
+
+            <div id="booking-selection" class="booking-selection" hidden>
+
+                <div class="selected-service-info">
+
+                    <span class="selected-service-label">
+                        Serviço selecionado
+                    </span>
+
+                    <strong id="selected-service-name">
+                    </strong>
+
+                </div>
+
+                <button type="button" id="continue-booking" class="continue-button">
+                    Continuar
+                </button>
+
+            </div>
+
+
+            <!-- ETAPA 2: DATA -->
+
+            <section id="date-selection" class="date-selection" hidden>
+
+                <div class="section-header">
+
+                    <h2>
+                        Escolha uma data
+                    </h2>
+
+                    <p>
+                        Selecione o dia em que deseja ser atendido.
+                    </p>
+
+                </div>
+
+
+                <div class="calendar-header">
+
+                    <button type="button" id="previous-month" class="calendar-navigation" aria-label="Mês anterior">
+                        ‹
+                    </button>
+
+                    <strong id="calendar-month">
+                    </strong>
+
+                    <button type="button" id="next-month" class="calendar-navigation" aria-label="Próximo mês">
+                        ›
+                    </button>
+
+                </div>
+
+
+                <div class="calendar-weekdays">
+
+                    <span>Dom</span>
+                    <span>Seg</span>
+                    <span>Ter</span>
+                    <span>Qua</span>
+                    <span>Qui</span>
+                    <span>Sex</span>
+                    <span>Sáb</span>
+
+                </div>
+
+
+                <div id="calendar-days" class="calendar-days">
+                </div>
+
+
+                <div id="selected-date-container" class="selected-date-container" hidden>
+
+                    <span>
+                        Data selecionada
+                    </span>
+
+                    <strong id="selected-date">
+                    </strong>
+
+                </div>
+
+
+                <button type="button" id="continue-date" class="continue-button" disabled>
+                    Continuar
+                </button>
+
+            </section>
+            <section id="time-selection" class="time-selection" hidden>
+
+                <div class="section-header">
+
+                    <h2>
+                        Escolha um horário
+                    </h2>
+
+                    <p>
+                        Horários disponíveis para a data selecionada.
+                    </p>
+
+                </div>
+
+                <div id="availability-loading" class="availability-loading" hidden>
+                    Consultando horários disponíveis...
+                </div>
+
+                <div id="availability-message" class="availability-message" hidden>
+                </div>
+
+                <div id="available-slots" class="available-slots">
+                </div>
+                <div class="selected-time-container">
+                    <div class="selected-time-info">
+                        <span class="selected-time-label">
+                            Horário selecionado
+                        </span>
+
+                        <strong id="selected-time">
+                            --
+                        </strong>
+                    </div>
+
+                    <button type="button" id="continue-time" class="continue-button" disabled>
+                        Continuar
+                    </button>
+                </div>
+
+            </section>
+
+            <!-- DADOS DO CLIENTE -->
+            <section id="customer-selection" class="booking-section" hidden>
+                <div class="section-header">
+                    <h2>Seus dados</h2>
+                    <p>Informe seus dados para continuar com o agendamento.</p>
+                </div>
+
+                <div class="customer-form-container">
+                    <form id="customer-form" novalidate>
+                        <div class="form-group">
+                            <label for="customer-name">Nome completo</label>
+                            <input type="text" id="customer-name" name="customer_name"
+                                placeholder="Digite seu nome completo" maxlength="120" autocomplete="name" required>
+                            <small class="field-error" id="customer-name-error" hidden></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customer-phone">Celular / WhatsApp</label>
+                            <input type="tel" id="customer-phone" name="customer_phone" placeholder="(11) 99999-9999"
+                                maxlength="20" autocomplete="tel" inputmode="tel" required>
+                            <small class="field-error" id="customer-phone-error" hidden></small>
+                        </div>
+
+                        <div id="customer-form-message" class="form-message" role="alert" hidden></div>
+
+                        <button type="submit" id="continue-customer" class="continue-button">
+                            Revisar agendamento
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- REVISÃO DO AGENDAMENTO -->
+            <section id="booking-review" class="booking-section" hidden>
+                <div class="section-header">
+                    <h2>Revise seu agendamento</h2>
+                    <p>Confira as informações antes de confirmar.</p>
+                </div>
+
+                <div class="booking-review-card">
+                    <p><strong>Estabelecimento:</strong>
+                        <span id="review-establishment"></span>
+                    </p>
+                    <p><strong>Serviço:</strong>
+                        <span id="review-service"></span>
+                    </p>
+                    <p><strong>Data:</strong>
+                        <span id="review-date"></span>
+                    </p>
+                    <p><strong>Horário:</strong>
+                        <span id="review-time"></span>
+                    </p>
+                    <p><strong>Cliente:</strong>
+                        <span id="review-customer"></span>
+                    </p>
+                    <p><strong>Telefone:</strong>
+                        <span id="review-phone"></span>
+                    </p>
+                    <p><strong>Valor:</strong>
+                        <span id="review-price"></span>
+                    </p>
+
+                    <p class="review-notice">
+                        Esta é uma prévia. O agendamento ainda não foi confirmado.
+                    </p>
+
+                    <button type="button" id="edit-customer" class="secondary-button">
+                        Voltar e editar
+                    </button>
+
+                    <div id="booking-confirmation-message" class="form-message" role="status" hidden></div>
+
+                    <button type="button" id="confirm-booking" class="continue-button">
+                        Confirmar agendamento
+                    </button>
+
+                </div>
+            </section>
+
+            {% endif %}
+
+        </section>
+
+    </main>
+
+
+    <script src="{{ url_for('static', filename='js/public-agendamento.js') }}"></script>
+
+</body>
+
+</html>
