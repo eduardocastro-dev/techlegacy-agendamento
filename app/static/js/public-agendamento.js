@@ -5,6 +5,9 @@ const bookingPage = document.querySelector(
 const establishmentSlug =
     bookingPage.dataset.establishmentSlug;
 
+const establishmentName =
+    bookingPage.dataset.establishmentName || establishmentSlug;
+
 const timeSelection =
     document.getElementById("time-selection");
 
@@ -95,6 +98,31 @@ let currentMonth = new Date(
    SERVIÇO
 ========================================================= */
 
+function resetFromDate() {
+
+    selectedDate = null;
+
+    selectedTime = null;
+
+    continueDateButton.disabled = true;
+
+    continueTimeButton.disabled = true;
+
+    selectedDateContainer.hidden = true;
+
+    selectedDateElement.textContent = "";
+
+    if (selectedTimeElement) {
+        selectedTimeElement.textContent = "--";
+    }
+
+    availableSlots.innerHTML = "";
+
+    availabilityMessage.hidden = true;
+
+}
+
+
 function selectService(card) {
 
     serviceCards.forEach((serviceCard) => {
@@ -107,6 +135,10 @@ function selectService(card) {
 
 
     card.classList.add("selected");
+
+
+    const previousServiceId =
+        selectedService ? selectedService.id : null;
 
 
     selectedService = {
@@ -137,33 +169,11 @@ function selectService(card) {
 
     bookingSelection.hidden = false;
 
-    dateSelection.hidden = true;
 
-
-    selectedDate = null;
-
-    selectedTime = null;
-
-
-    continueDateButton.disabled = true;
-
-    continueTimeButton.disabled = true;
-
-
-    selectedDateContainer.hidden = true;
-
-    timeSelection.hidden = true;
-
-
-    if (selectedTimeElement) {
-
-        selectedTimeElement.textContent =
-            "--";
-
+    // Só zera data e horário se o serviço mudou.
+    if (previousServiceId !== selectedService.id) {
+        resetFromDate();
     }
-
-
-    availableSlots.innerHTML = "";
 
 }
 
@@ -222,16 +232,10 @@ continueButton.addEventListener(
         );
 
 
-        dateSelection.hidden = false;
-
-
         renderCalendar();
 
 
-        dateSelection.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-        });
+        showStep("date");
 
     }
 );
@@ -666,6 +670,9 @@ continueDateButton.addEventListener(
         );
 
 
+        showStep("time");
+
+
         await loadAvailability(
             selectedService.id,
             date
@@ -683,10 +690,6 @@ async function loadAvailability(
     serviceId,
     date
 ) {
-
-    timeSelection.hidden =
-        false;
-
 
     availabilityLoading.hidden =
         false;
@@ -742,13 +745,6 @@ async function loadAvailability(
         renderAvailableSlots(
             data.slots
         );
-
-
-        timeSelection.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-        });
-
 
     } catch (error) {
 
@@ -950,20 +946,7 @@ continueTimeButton.addEventListener(
         );
 
 
-        bookingReview.hidden = true;
-
-        customerSelection.hidden = false;
-
-
-        customerSelection.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-        });
-
-
-        customerNameInput.focus({
-            preventScroll: true,
-        });
+        showStep("customer");
 
     }
 );
@@ -1002,10 +985,6 @@ const customerFormMessage = document.getElementById(
 
 const bookingReview = document.getElementById(
     "booking-review"
-);
-
-const editCustomerButton = document.getElementById(
-    "edit-customer"
 );
 
 function clearCustomerErrors() {
@@ -1121,7 +1100,7 @@ function showBookingReview(customer) {
 
     document.getElementById(
         "review-establishment"
-    ).textContent = establishmentSlug;
+    ).textContent = establishmentName;
 
     document.getElementById(
         "review-service"
@@ -1147,22 +1126,11 @@ function showBookingReview(customer) {
         "review-price"
     ).textContent = formatBookingPrice(selectedService.price);
 
-    bookingReview.hidden = false;
-
-    bookingReview.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-    });
+    showStep("review");
 }
 
 function showCustomerForm() {
-    bookingReview.hidden = true;
-    customerSelection.hidden = false;
-
-    customerSelection.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-    });
+    showStep("customer");
 }
 
 customerForm.addEventListener("submit", (event) => {
@@ -1186,13 +1154,6 @@ customerForm.addEventListener("submit", (event) => {
     };
 
     showBookingReview(customer);
-});
-
-editCustomerButton.addEventListener("click", () => {
-    showCustomerForm();
-    customerNameInput.focus({
-        preventScroll: true,
-    });
 });
 
 // Limpa o erro do campo quando o cliente começa a corrigir.
@@ -1258,16 +1219,10 @@ confirmBookingButton.addEventListener("click", async () => {
             );
         }
 
-        bookingConfirmationMessage.textContent =
-            `Agendamento confirmado! Código: ${result.appointment.id}.`;
-        bookingConfirmationMessage.hidden = false;
-
-        confirmBookingButton.textContent = "Agendamento confirmado";
-        document.querySelector(".review-notice").textContent =
-            "Seu horário foi registrado com sucesso.";
-
         sessionStorage.removeItem("public_booking");
         sessionStorage.removeItem("public_booking_service");
+
+        openSuccessModal();
 
     } catch (error) {
         bookingConfirmationMessage.textContent = error.message;
@@ -1277,3 +1232,129 @@ confirmBookingButton.addEventListener("click", async () => {
         confirmBookingButton.textContent = "Confirmar agendamento";
     }
 });
+
+
+/* =========================================================
+   NAVEGAÇÃO ENTRE ETAPAS
+========================================================= */
+
+const stepOrder = ["service", "date", "time", "customer", "review"];
+
+const stepScreens = {
+    service: [document.querySelector(".services-section"), bookingSelection],
+    date: [dateSelection],
+    time: [timeSelection],
+    customer: [customerSelection],
+    review: [bookingReview],
+};
+
+const progressItems = document.querySelectorAll("#steps-progress li");
+
+
+function showStep(step, shouldScroll = true) {
+
+    // Mostra apenas a tela da etapa atual e esconde as demais.
+    Object.entries(stepScreens).forEach(([name, elements]) => {
+        elements.forEach((element) => {
+            element.hidden = name !== step;
+        });
+    });
+
+    // Na etapa inicial, a barra "Serviço selecionado" só aparece
+    // se já houver um serviço escolhido.
+    if (step === "service") {
+        bookingSelection.hidden = !selectedService;
+    }
+
+    const currentIndex = stepOrder.indexOf(step);
+
+    progressItems.forEach((item, index) => {
+        item.classList.toggle("active", index === currentIndex);
+        item.classList.toggle("done", index < currentIndex);
+    });
+
+    if (shouldScroll) {
+        bookingPage.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+        });
+    }
+
+    if (step === "customer") {
+        customerNameInput.focus({ preventScroll: true });
+    }
+}
+
+
+document.getElementById("back-to-service")
+    .addEventListener("click", () => showStep("service"));
+
+document.getElementById("back-to-date")
+    .addEventListener("click", () => showStep("date"));
+
+document.getElementById("back-to-time")
+    .addEventListener("click", () => showStep("time"));
+
+document.getElementById("back-to-customer")
+    .addEventListener("click", () => showStep("customer"));
+
+
+/* =========================================================
+   POP-UP DE SUCESSO E REINÍCIO DO FLUXO
+========================================================= */
+
+const successModal = document.getElementById("success-modal");
+
+const successModalOk = document.getElementById("success-modal-ok");
+
+
+function resetBooking() {
+
+    selectedService = null;
+
+    serviceCards.forEach((card) => card.classList.remove("selected"));
+
+    selectedServiceName.textContent = "";
+
+    resetFromDate();
+
+    currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    availabilityLoading.hidden = true;
+
+    customerForm.reset();
+
+    clearCustomerErrors();
+
+    bookingConfirmationMessage.textContent = "";
+    bookingConfirmationMessage.hidden = true;
+
+    confirmBookingButton.disabled = false;
+    confirmBookingButton.textContent = "Confirmar agendamento";
+
+    sessionStorage.removeItem("public_booking");
+    sessionStorage.removeItem("public_booking_service");
+
+    showStep("service");
+}
+
+
+function openSuccessModal() {
+    successModal.hidden = false;
+    document.body.classList.add("modal-open");
+    successModalOk.focus();
+}
+
+
+function closeSuccessModal() {
+    successModal.hidden = true;
+    document.body.classList.remove("modal-open");
+    resetBooking();
+}
+
+
+successModalOk.addEventListener("click", closeSuccessModal);
+
+
+// Estado inicial: apenas a escolha do serviço.
+showStep("service", false);

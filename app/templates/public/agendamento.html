@@ -14,7 +14,8 @@
 
 <body>
 
-    <main class="booking-page" data-establishment-slug="{{ establishment.slug }}">
+    <main class="booking-page" data-establishment-slug="{{ establishment.slug }}"
+        data-establishment-name="{{ establishment.name }}">
 
         <section class="booking-container">
 
@@ -34,6 +35,17 @@
                 </p>
 
             </header>
+
+
+            <!-- PROGRESSO -->
+
+            <ol id="steps-progress" class="steps-progress" aria-label="Etapas do agendamento">
+                <li class="active"><span class="step-label">Serviço</span></li>
+                <li><span class="step-label">Data</span></li>
+                <li><span class="step-label">Horário</span></li>
+                <li><span class="step-label">Dados</span></li>
+                <li><span class="step-label">Revisão</span></li>
+            </ol>
 
 
             <!-- ETAPA 1: SERVIÇO -->
@@ -151,6 +163,12 @@
 
             <section id="date-selection" class="date-selection" hidden>
 
+                <div class="step-nav">
+                    <button type="button" id="back-to-service" class="back-button">
+                        <span aria-hidden="true">&#8249;</span> Voltar
+                    </button>
+                </div>
+
                 <div class="section-header">
 
                     <h2>
@@ -216,6 +234,12 @@
             </section>
             <section id="time-selection" class="time-selection" hidden>
 
+                <div class="step-nav">
+                    <button type="button" id="back-to-date" class="back-button">
+                        <span aria-hidden="true">&#8249;</span> Voltar
+                    </button>
+                </div>
+
                 <div class="section-header">
 
                     <h2>
@@ -257,6 +281,12 @@
 
             <!-- DADOS DO CLIENTE -->
             <section id="customer-selection" class="booking-section" hidden>
+
+                <div class="step-nav">
+                    <button type="button" id="back-to-time" class="back-button">
+                        <span aria-hidden="true">&#8249;</span> Voltar
+                    </button>
+                </div>
                 <div class="section-header">
                     <h2>Seus dados</h2>
                     <p>Informe seus dados para continuar com o agendamento.</p>
@@ -289,50 +319,58 @@
 
             <!-- REVISÃO DO AGENDAMENTO -->
             <section id="booking-review" class="booking-section" hidden>
+
+                <div class="step-nav">
+                    <button type="button" id="back-to-customer" class="back-button">
+                        <span aria-hidden="true">&#8249;</span> Voltar
+                    </button>
+                </div>
+
                 <div class="section-header">
                     <h2>Revise seu agendamento</h2>
                     <p>Confira as informações antes de confirmar.</p>
                 </div>
 
                 <div class="booking-review-card">
-                    <p><strong>Estabelecimento:</strong>
+                    <p class="review-row"><strong>Estabelecimento</strong>
                         <span id="review-establishment"></span>
                     </p>
-                    <p><strong>Serviço:</strong>
+                    <p class="review-row"><strong>Serviço</strong>
                         <span id="review-service"></span>
                     </p>
-                    <p><strong>Data:</strong>
+                    <p class="review-row"><strong>Data</strong>
                         <span id="review-date"></span>
                     </p>
-                    <p><strong>Horário:</strong>
+                    <p class="review-row"><strong>Horário</strong>
                         <span id="review-time"></span>
                     </p>
-                    <p><strong>Cliente:</strong>
+                    <p class="review-row"><strong>Cliente</strong>
                         <span id="review-customer"></span>
                     </p>
-                    <p><strong>Telefone:</strong>
+                    <p class="review-row"><strong>Telefone</strong>
                         <span id="review-phone"></span>
                     </p>
-                    <p><strong>Valor:</strong>
+                    <p class="review-row review-total"><strong>Valor</strong>
                         <span id="review-price"></span>
                     </p>
 
-                    <p class="review-notice">
-                        Esta é uma prévia. O agendamento ainda não foi confirmado.
-                    </p>
+                    <div id="booking-confirmation-message" class="form-message" role="alert" hidden></div>
 
-                    <button type="button" id="edit-customer" class="secondary-button">
-                        Voltar e editar
-                    </button>
-
-                    <div id="booking-confirmation-message" class="form-message" role="status" hidden></div>
-
-                    <button type="button" id="confirm-booking" class="continue-button">
+                    <button type="button" id="confirm-booking" class="continue-button confirm-button">
                         Confirmar agendamento
                     </button>
-
                 </div>
             </section>
+
+            <!-- POP-UP DE SUCESSO -->
+            <div id="success-modal" class="modal-overlay" role="dialog" aria-modal="true"
+                aria-labelledby="success-modal-title" hidden>
+                <div class="modal">
+                    <div class="modal-icon" aria-hidden="true">&#10003;</div>
+                    <h2 id="success-modal-title">Agendamento realizado com sucesso!</h2>
+                    <button type="button" id="success-modal-ok" class="continue-button">OK</button>
+                </div>
+            </div>
 
             {% endif %}
 
