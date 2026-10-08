@@ -770,87 +770,67 @@ async function loadAvailability(
    RENDERIZA HORÁRIOS
 ========================================================= */
 
-function renderAvailableSlots(
-    slots
-) {
 
-    availableSlots.innerHTML =
-        "";
+function renderAvailableSlots(slots) {
+    availableSlots.innerHTML = "";
 
+    selectedTime = null;
+    continueTimeButton.disabled = true;
 
-    selectedTime =
-        null;
+    // Consulta a hora atual no momento em que os horários são exibidos.
+    const now = new Date();
 
+    const isToday =
+        selectedDate && isSameDay(selectedDate, now);
 
-    continueTimeButton.disabled =
-        true;
+    // Em agendamentos para hoje, remove horários que já passaram.
+    const futureSlots = (slots || []).filter((slot) => {
+        if (!isToday) {
+            return true;
+        }
 
+        const [hours, minutes] = slot.split(":").map(Number);
 
-    if (
-        !slots ||
-        slots.length === 0
-    ) {
+        const slotDateTime = new Date(
+            selectedDate.getFullYear(),
+            selectedDate.getMonth(),
+            selectedDate.getDate(),
+            hours,
+            minutes,
+            0,
+            0
+        );
 
-        availabilityMessage.textContent =
-            "Não há horários disponíveis para esta data.";
+        return slotDateTime > now;
+    });
 
+    if (futureSlots.length === 0) {
+        availabilityMessage.textContent = isToday
+            ? "Não há mais horários disponíveis para hoje."
+            : "Não há horários disponíveis para esta data.";
 
-        availabilityMessage.hidden =
-            false;
-
-
+        availabilityMessage.hidden = false;
         return;
-
     }
 
+    availabilityMessage.hidden = true;
 
-    availabilityMessage.hidden =
-        true;
+    futureSlots.forEach((slot) => {
+        const button = document.createElement("button");
 
+        button.type = "button";
+        button.className = "available-slot";
+        button.textContent = slot;
+        button.dataset.time = slot;
 
-    slots.forEach(
-        (slot) => {
+        button.addEventListener("click", () => {
+            selectTime(button);
+        });
 
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-
-            button.type =
-                "button";
-
-
-            button.className =
-                "available-slot";
-
-
-            button.textContent =
-                slot;
-
-
-            button.dataset.time =
-                slot;
-
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    selectTime(button);
-
-                }
-            );
-
-
-            availableSlots.appendChild(
-                button
-            );
-
-        }
-    );
-
+        availableSlots.appendChild(button);
+    });
 }
+
 
 
 /* =========================================================
