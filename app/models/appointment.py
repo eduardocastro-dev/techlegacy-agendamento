@@ -23,6 +23,12 @@ class Appointment(db.Model):
         nullable=False,
     )
 
+    professional_id = db.Column(
+        db.Integer,
+        db.ForeignKey("professionals.id"),
+        nullable=True,
+    )
+
     customer_name = db.Column(
         db.String(120),
         nullable=False,
@@ -65,6 +71,14 @@ class Appointment(db.Model):
 
     service = db.relationship(
         "Service",
+        backref=db.backref(
+            "appointments",
+            lazy=True,
+        ),
+    )
+
+    professional = db.relationship(
+        "Professional",
         backref=db.backref(
             "appointments",
             lazy=True,

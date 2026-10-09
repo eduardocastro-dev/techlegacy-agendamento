@@ -3,9 +3,7 @@ from datetime import datetime
 
 def validate_appointment_payload(data, partial=False):
     if not isinstance(data, dict):
-        return {
-            "body": "Request body must be a JSON object"
-        }
+        return {"body": "Request body must be a JSON object"}
 
     errors = {}
 
@@ -22,57 +20,34 @@ def validate_appointment_payload(data, partial=False):
             if field not in data:
                 errors[field] = "This field is required"
 
-    if "establishment_id" in data:
-        if (
-            not isinstance(data["establishment_id"], int)
-            or isinstance(data["establishment_id"], bool)
-        ):
-            errors["establishment_id"] = (
-                "Must be an integer"
-            )
+    for field in ("establishment_id", "service_id", "professional_id"):
+        if field in data and data[field] is not None:
+            value = data[field]
 
-    if "service_id" in data:
-        if (
-            not isinstance(data["service_id"], int)
-            or isinstance(data["service_id"], bool)
-        ):
-            errors["service_id"] = (
-                "Must be an integer"
-            )
+            if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+                errors[field] = "Must be a positive integer or null"
 
     if "customer_name" in data:
         if not isinstance(data["customer_name"], str):
-            errors["customer_name"] = (
-                "Must be a string"
-            )
+            errors["customer_name"] = "Must be a string"
         elif not data["customer_name"].strip():
-            errors["customer_name"] = (
-                "Must not be empty"
-            )
+            errors["customer_name"] = "Must not be empty"
 
     if "customer_phone" in data:
         if not isinstance(data["customer_phone"], str):
-            errors["customer_phone"] = (
-                "Must be a string"
-            )
+            errors["customer_phone"] = "Must be a string"
         elif not data["customer_phone"].strip():
-            errors["customer_phone"] = (
-                "Must not be empty"
-            )
+            errors["customer_phone"] = "Must not be empty"
 
     if "starts_at" in data:
         value = data["starts_at"]
 
         if not isinstance(value, str):
-            errors["starts_at"] = (
-                "Must be in ISO 8601 format"
-            )
+            errors["starts_at"] = "Must be in ISO 8601 format"
         else:
             try:
                 datetime.fromisoformat(value)
             except ValueError:
-                errors["starts_at"] = (
-                    "Must be in ISO 8601 format"
-                )
+                errors["starts_at"] = "Must be in ISO 8601 format"
 
     return errors

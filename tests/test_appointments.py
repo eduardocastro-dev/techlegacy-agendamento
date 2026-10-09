@@ -1,7 +1,7 @@
 from datetime import date
 
 from app.extensions import db
-from app.models import Appointment, Establishment, Service
+from app.models import Appointment, Establishment, Professional, Service
 
 
 def create_service(establishment_id):
@@ -17,6 +17,20 @@ def create_service(establishment_id):
     db.session.commit()
 
     return service
+
+
+def create_professional(establishment_id, service, name):
+    professional = Professional(
+        establishment_id=establishment_id,
+        name=name,
+        active=True,
+    )
+    professional.services.append(service)
+
+    db.session.add(professional)
+    db.session.commit()
+
+    return professional
 
 
 def create_schedule(client, auth_headers):
@@ -40,16 +54,22 @@ def create_appointment(
     starts_at="2026-10-05T09:00:00",
     customer_name="João",
     customer_phone="11999999999",
+    professional_id=None,
 ):
+    payload = {
+        "service_id": service_id,
+        "customer_name": customer_name,
+        "customer_phone": customer_phone,
+        "starts_at": starts_at,
+    }
+
+    if professional_id is not None:
+        payload["professional_id"] = professional_id
+
     return client.post(
         "/appointments",
         headers=auth_headers,
-        json={
-            "service_id": service_id,
-            "customer_name": customer_name,
-            "customer_phone": customer_phone,
-            "starts_at": starts_at,
-        },
+        json=payload,
     )
 
 
@@ -662,3 +682,194 @@ def test_get_appointment_without_auth(client):
     response = client.get("/appointments/1")
 
     assert response.status_code == 401
+
+
+def test_different_professionals_can_book_same_slot(
+    client,
+    auth_headers,
+    establishment,
+):
+    service = create_service(establishment)
+    professional_one = create_professional(
+        establishment,
+        service,
+        "Ana",
+    )
+    professional_two = create_professional(
+        establishment,
+        service,
+        "Bruno",
+    )
+
+    create_schedule(client, auth_headers)
+
+    first = create_appointment(
+        client,
+        auth_headers,
+        service.id,
+        professional_id=professional_one.id,
+    )
+    second = create_appointment(
+        client,
+        auth_headers,
+        service.id,
+        professional_id=professional_two.id,
+    )
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert first.get_json()["professional_id"] == professional_one.id
+    assert second.get_json()["professional_id"] == professional_two.id
+
+
+def test_same_professional_cannot_book_overlapping_slot(
+    client,
+    auth_headers,
+    establishment,
+):
+    service = create_service(establishment)
+    professional = create_professional(
+        establishment,
+        service,
+        "Ana",
+    )
+
+    create_schedule(client, auth_headers)
+
+    first = create_appointment(
+        client,
+        auth_headers,
+        service.id,
+        professional_id=professional.id,
+    )
+    second = create_appointment(
+        client,
+        auth_headers,
+        service.id,
+        customer_name="Maria",
+        customer_phone="11888888888",
+        professional_id=professional.id,
+    )
+
+    assert first.status_code == 201
+    assert second.status_code == 409
+
+
+def test_appointment_without_preference_assigns_available_professional(
+    client,
+    auth_headers,
+    establishment,
+):
+    service = create_service(establishment)
+    professional_one = create_professional(
+        establishment,
+        service,
+        "Ana",
+    )
+    professional_two = create_professional(
+        establishment,
+        service,
+        "Bruno",
+    )
+
+    create_schedule(client, auth_headers)
+
+    response = create_appointment(
+        client,
+        auth_headers,
+        service.id,
+    )
+
+    assert response.status_code == 201
+    assert response.get_json()["professional_id"] in {
+        professional_one.id,
+        professional_two.id,
+    }
+
+
+def test_update_appointment_changes_professional(
+    client,
+    auth_headers,
+    establishment,
+):
+    service = create_service(establishment)
+    professional_one = create_professional(
+        establishment,
+        service,
+        "Ana",
+    )
+    professional_two = create_professional(
+        establishment,
+        service,
+        "Bruno",
+    )
+
+    create_schedule(client, auth_headers)
+
+    created = create_appointment(
+        client,
+        auth_headers,
+        service.id,
+        professional_id=professional_one.id,
+    )
+
+    assert created.status_code == 201
+
+    appointment_id = created.get_json()["id"]
+
+    response = client.put(
+        f"/appointments/{appointment_id}",
+        headers=auth_headers,
+        json={"professional_id": professional_two.id},
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["professional_id"] == professional_two.id
+
+
+def test_cannot_assign_professional_from_another_establishment(
+    client,
+    auth_headers,
+    establishment,
+):
+    # Serviço e profissional do estabelecimento autenticado.
+    service = create_service(establishment)
+    create_schedule(client, auth_headers)
+
+    created = create_appointment(
+        client,
+        auth_headers,
+        service.id,
+    )
+
+    assert created.status_code == 201
+    appointment_id = created.get_json()["id"]
+
+    # Criamos um segundo estabelecimento.
+    other_establishment = Establishment(
+        name="Outro Estabelecimento",
+        slug="outro-estabelecimento",
+        phone="11888888888",
+    )
+    db.session.add(other_establishment)
+    db.session.commit()
+
+    # Profissional vinculado somente ao segundo estabelecimento.
+    other_service = create_service(other_establishment.id)
+    other_professional = create_professional(
+        other_establishment.id,
+        other_service,
+        "Carlos",
+    )
+
+    # Tentamos atribuí-lo ao agendamento do primeiro estabelecimento.
+    response = client.put(
+        f"/appointments/{appointment_id}",
+        headers=auth_headers,
+        json={"professional_id": other_professional.id},
+    )
+
+    assert response.status_code == 400, response.get_json()
+    assert response.get_json()["error"] == (
+        "Professional is not available for this service"
+    )

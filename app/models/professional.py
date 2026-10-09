@@ -3,10 +3,13 @@ from sqlalchemy import func
 from app.extensions import db
 
 
-class Service(db.Model):
-    __tablename__ = "services"
+class Professional(db.Model):
+    __tablename__ = "professionals"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+    )
 
     establishment_id = db.Column(
         db.Integer,
@@ -16,20 +19,6 @@ class Service(db.Model):
 
     name = db.Column(
         db.String(120),
-        nullable=False,
-    )
-
-    description = db.Column(
-        db.Text,
-    )
-
-    duration_minutes = db.Column(
-        db.Integer,
-        nullable=False,
-    )
-
-    price = db.Column(
-        db.Numeric(10, 2),
         nullable=False,
     )
 
@@ -48,17 +37,16 @@ class Service(db.Model):
     establishment = db.relationship(
         "Establishment",
         backref=db.backref(
-            "services",
+            "professionals",
             lazy=True,
         ),
     )
-
-    professionals = db.relationship(
-        "Professional",
+    services = db.relationship(
+        "Service",
         secondary="professional_services",
-        back_populates="services",
+        back_populates="professionals",
         lazy=True,
     )
 
     def __repr__(self):
-        return f"<Service {self.name}>"
+        return f"<Professional " f"id={self.id} " f"name={self.name}>"
