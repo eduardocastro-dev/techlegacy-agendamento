@@ -1,6 +1,5 @@
-from datetime import date, datetime
+from datetime import datetime
 
-from app.extensions import db
 from app.models import (
     Appointment,
     Schedule,

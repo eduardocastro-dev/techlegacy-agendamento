@@ -1,5 +1,7 @@
 from sqlalchemy import func
+
 from app.extensions import db
+
 
 class Service(db.Model):
     __tablename__ = "services"

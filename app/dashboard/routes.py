@@ -1,10 +1,12 @@
-from flask import Blueprint, jsonify, request, render_template
 from datetime import datetime
+
+from flask import Blueprint, jsonify, render_template, request
 
 from app.auth.context import get_current_establishment_id
 from app.auth.decorators import jwt_required_with_user
-from .service import get_dashboard_data
+
 from .agenda_service import get_agenda_data
+from .service import get_dashboard_data
 
 dashboard_bp = Blueprint(
     "dashboard",

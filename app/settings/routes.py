@@ -13,10 +13,9 @@ from .service import (
     update_user_account,
     update_user_password,
 )
-
 from .validation import (
-    validate_establishment_update,
     validate_account_update,
+    validate_establishment_update,
     validate_password_update,
 )
 

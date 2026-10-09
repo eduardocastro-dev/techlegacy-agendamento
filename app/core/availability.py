@@ -1,4 +1,4 @@
-from datetime import datetime, date, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from app.models import Appointment, Schedule, ScheduleException, Service
 

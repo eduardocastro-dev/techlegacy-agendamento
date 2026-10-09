@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from app.core.availability import get_available_slots
 from app.models import Establishment, Service

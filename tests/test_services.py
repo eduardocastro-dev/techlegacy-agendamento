@@ -402,9 +402,10 @@ def test_service_isolation_between_establishments(
     app,
     auth_headers,
 ):
+    from werkzeug.security import generate_password_hash
+
     from app.extensions import db
     from app.models import Establishment, User
-    from werkzeug.security import generate_password_hash
 
     with app.app_context():
         establishment_2 = Establishment(

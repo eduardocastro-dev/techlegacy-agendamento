@@ -3,14 +3,22 @@ from flask import Blueprint, jsonify, request
 from app.auth.context import get_current_establishment_id
 from app.auth.decorators import jwt_required_with_user
 from app.core.errors import APIError
-from app.services.validation import validate_service_payload
 from app.services.service import (
     create_service as create_service_record,
-    list_services as list_service_records,
-    get_service as get_service_record,
-    update_service as update_service_record,
+)
+from app.services.service import (
     deactivate_service,
 )
+from app.services.service import (
+    get_service as get_service_record,
+)
+from app.services.service import (
+    list_services as list_service_records,
+)
+from app.services.service import (
+    update_service as update_service_record,
+)
+from app.services.validation import validate_service_payload
 
 services_bp = Blueprint(
     "services",

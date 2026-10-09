@@ -586,8 +586,9 @@ def test_appointment_isolation_between_establishments(
         db.session.add(establishment_two)
         db.session.commit()
 
-        from app.models import User
         from werkzeug.security import generate_password_hash
+
+        from app.models import User
 
         user_two = User(
             establishment_id=establishment_two.id,

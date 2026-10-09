@@ -1,9 +1,9 @@
+from .appointment import Appointment
 from .establishment import Establishment
-from .user import User
-from .service import Service
 from .schedule import Schedule
 from .schedule_exception import ScheduleException
-from .appointment import Appointment
+from .service import Service
+from .user import User
 
 __all__ = [
     "Establishment",

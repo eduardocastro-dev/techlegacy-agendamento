@@ -1,14 +1,14 @@
 from datetime import date, datetime, time
 
+from app.dashboard.agenda_service import get_agenda_data
 from app.extensions import db
 from app.models import (
     Appointment,
+    Establishment,
     Schedule,
     ScheduleException,
     Service,
-    Establishment,
 )
-from app.dashboard.agenda_service import get_agenda_data
 
 
 def create_service(establishment_id):

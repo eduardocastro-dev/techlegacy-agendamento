@@ -1,16 +1,27 @@
 import pytest
+from werkzeug.security import generate_password_hash
 
 from app import create_app
 from app.extensions import db
 from app.models import Establishment, User
-from werkzeug.security import generate_password_hash
 
 
 @pytest.fixture
 def app():
+    secret_key = (
+        "a3b5cb6beca0faf6952edd282f3498f3"
+        "0c62bb471d50b9e7241cea53c45519a1"
+    )
+    jwt_secret_key = (
+        "fae82c89e3449b41c1bcef68fdb94cd8"
+          "15414abacb2b8afbd4576fec22be24b4"
+    )
+
     app = create_app(
         {
             "TESTING": True,
+            "SECRET_KEY": secret_key,
+            "JWT_SECRET_KEY": jwt_secret_key,
             "SQLALCHEMY_DATABASE_URI": (
                 "postgresql+psycopg://"
                 "agenda_user:agenda_password"

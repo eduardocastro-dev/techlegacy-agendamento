@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from flask import Blueprint, abort, jsonify, render_template, request
 
 from app.extensions import db
-from app.models import Appointment, Establishment
+from app.models import Appointment
+
 from .service import (
     get_public_availability,
     get_public_establishment,

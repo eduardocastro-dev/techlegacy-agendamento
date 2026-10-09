@@ -1,4 +1,6 @@
 from flask_jwt_extended import get_jwt_identity
+
+from app.extensions import db
 from app.models import User
 
 
@@ -8,7 +10,7 @@ def get_current_user():
     if not user_id:
         return None
 
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 def get_current_establishment_id():

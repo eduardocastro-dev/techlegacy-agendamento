@@ -2,15 +2,15 @@ from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, request
 
+from app.appointments.validation import (
+    validate_appointment_payload,
+)
+from app.auth.context import get_current_establishment_id
+from app.auth.decorators import jwt_required_with_user
 from app.core.availability import get_available_slots, to_naive
 from app.core.errors import APIError
 from app.extensions import db
 from app.models import Appointment, Service
-from app.auth.decorators import jwt_required_with_user
-from app.auth.context import get_current_establishment_id
-from app.appointments.validation import (
-    validate_appointment_payload,
-)
 
 appointments_bp = Blueprint(
     "appointments",
