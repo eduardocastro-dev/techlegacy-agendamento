@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 
 from app.auth.views import auth_views_bp
+from app.core.logging_config import configure_logging
 from app.public import public_bp
 
 from .appointments.routes import appointments_bp
@@ -15,13 +16,38 @@ from .services.routes import services_bp
 from .settings.routes import settings_bp
 
 
+def validate_config(app):
+    required_keys = (
+        "SECRET_KEY",
+        "JWT_SECRET_KEY",
+        "SQLALCHEMY_DATABASE_URI",
+    )
+
+    missing_keys = [key for key in required_keys if not app.config.get(key)]
+
+    if missing_keys:
+        raise RuntimeError(
+            "Configurações obrigatórias ausentes: " + ", ".join(missing_keys)
+        )
+
+    for key in ("SECRET_KEY", "JWT_SECRET_KEY"):
+        value = app.config[key]
+
+        if not isinstance(value, str) or len(value) < 32:
+            raise RuntimeError(f"{key} deve conter pelo menos 32 caracteres.")
+
+
 def create_app(test_config=None):
+    configure_logging()
+
     app = Flask(__name__)
 
     app.config.from_object(Config)
 
     if test_config:
         app.config.update(test_config)
+
+    validate_config(app)
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -61,5 +87,12 @@ def create_app(test_config=None):
     @app.get("/health")
     def health():
         return {"status": "ok", "message": "TechLegacy Agendamento API is running"}
+
+    @app.errorhandler(500)
+    def handle_internal_server_error(error):
+        if error.original_exception is None:
+            app.logger.error("Erro interno HTTP 500.")
+
+        return jsonify({"error": "Internal server error"}), 500
 
     return app
