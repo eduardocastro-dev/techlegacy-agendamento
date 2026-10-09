@@ -25,6 +25,11 @@ def admin_agenda():
     return render_template("dashboard/agenda.html")
 
 
+@dashboard_bp.get("/admin/profissionais")
+def admin_professionals():
+    return render_template("dashboard/profissionais.html")
+
+
 @dashboard_bp.get("/admin/servicos")
 def admin_services():
     return render_template("dashboard/services.html")
@@ -45,6 +50,12 @@ def serialize_appointment(appointment):
         "id": appointment.id,
         "service_id": appointment.service_id,
         "service_name": (appointment.service.name if appointment.service else None),
+        "professional_id": appointment.professional_id,
+        "professional_name": (
+            appointment.professional.name
+            if appointment.professional
+            else None
+        ),
         "customer_name": appointment.customer_name,
         "customer_phone": appointment.customer_phone,
         "starts_at": appointment.starts_at.isoformat(),
@@ -77,6 +88,7 @@ def dashboard():
                 "appointments_today": dashboard_data["appointments_today"],
                 "upcoming_appointments": len(upcoming_appointments),
                 "active_services": dashboard_data["active_services"],
+                "professionals": dashboard_data["professionals"],
             },
             "upcoming": [
                 serialize_appointment(appointment)

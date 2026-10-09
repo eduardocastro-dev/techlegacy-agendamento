@@ -37,6 +37,7 @@ const bookingSelection = document.getElementById(
 const selectedServiceName = document.getElementById(
     "selected-service-name"
 );
+const professionalSelect = document.getElementById("booking-professional");
 
 const continueButton = document.getElementById(
     "continue-booking"
@@ -74,8 +75,9 @@ const continueDateButton = document.getElementById(
     "continue-date"
 );
 
-
 let selectedService = null;
+let selectedProfessionalId = "";
+let selectedProfessionals = [];
 
 let selectedDate = null;
 
@@ -163,10 +165,14 @@ function selectService(card) {
     };
 
 
-    selectedServiceName.textContent =
-        selectedService.name;
+    selectedServiceName.textContent = selectedService.name;
 
-
+    try {
+        selectedProfessionals = JSON.parse(card.dataset.serviceProfessionals || "[]");
+    } catch (error) {
+        selectedProfessionals = [];
+    }
+    renderProfessionalOptions();
     bookingSelection.hidden = false;
 
 
@@ -177,6 +183,40 @@ function selectService(card) {
 
 }
 
+
+function renderProfessionalOptions() {
+    if (!professionalSelect) return;
+    const previousValue = selectedProfessionalId;
+    professionalSelect.innerHTML = "";
+
+    const anyOption = document.createElement("option");
+    anyOption.value = "";
+    anyOption.textContent = selectedProfessionals.length
+        ? "Qualquer profissional disponível"
+        : "Sem seleção de profissional";
+    professionalSelect.appendChild(anyOption);
+
+    selectedProfessionals.forEach((professional) => {
+        const option = document.createElement("option");
+        option.value = String(professional.id);
+        option.textContent = professional.name;
+        professionalSelect.appendChild(option);
+    });
+
+    if (selectedProfessionals.some((p) => String(p.id) === previousValue)) {
+        professionalSelect.value = previousValue;
+    } else {
+        selectedProfessionalId = "";
+        professionalSelect.value = "";
+    }
+}
+
+if (professionalSelect) {
+    professionalSelect.addEventListener("change", () => {
+        selectedProfessionalId = professionalSelect.value;
+        resetFromDate();
+    });
+}
 
 serviceCards.forEach((card) => {
 
@@ -656,6 +696,11 @@ continueDateButton.addEventListener(
             service:
                 selectedService,
 
+            professional_id: selectedProfessionalId || null,
+            professional_name: selectedProfessionals.find(
+                (professional) => String(professional.id) === selectedProfessionalId
+            )?.name || null,
+
             date:
                 date,
 
@@ -724,7 +769,8 @@ async function loadAvailability(
         const response =
             await fetch(
                 `/agendamento/${establishmentSlug}/disponibilidade` +
-                `?service_id=${serviceId}&date=${date}`
+                `?service_id=${serviceId}&date=${date}` +
+                (selectedProfessionalId ? `&professional_id=${selectedProfessionalId}` : "")
             );
 
 
@@ -906,6 +952,11 @@ continueTimeButton.addEventListener(
 
             service:
                 selectedService,
+
+            professional_id: selectedProfessionalId || null,
+            professional_name: selectedProfessionals.find(
+                (professional) => String(professional.id) === selectedProfessionalId
+            )?.name || null,
 
             date:
                 formatDateForStorage(
@@ -1183,6 +1234,7 @@ confirmBookingButton.addEventListener("click", async () => {
                 },
                 body: JSON.stringify({
                     service_id: selectedService.id,
+                    professional_id: selectedProfessionalId || null,
                     date: formatDateForStorage(selectedDate),
                     time: selectedTime,
                     customer_name: customerName,
@@ -1291,6 +1343,9 @@ const successModalOk = document.getElementById("success-modal-ok");
 function resetBooking() {
 
     selectedService = null;
+    selectedProfessionalId = "";
+    selectedProfessionals = [];
+    if (professionalSelect) professionalSelect.innerHTML = "";
 
     serviceCards.forEach((card) => card.classList.remove("selected"));
 

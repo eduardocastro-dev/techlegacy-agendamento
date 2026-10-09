@@ -35,6 +35,11 @@
                     <span>Agenda</span>
                 </a>
 
+                <a href="/dashboard/admin/profissionais" class="nav-item">
+                    <span>👥</span>
+                    <span>Profissionais</span>
+                </a>
+
                 <a href="/dashboard/admin/servicos" class="nav-item">
                     <span>📋</span>
                     <span>Serviços</span>
@@ -106,6 +111,13 @@
                         </div>
 
                         <div class="agenda-navigation">
+
+                            <label class="agenda-professional-filter" for="agenda-professional">
+                                Profissional
+                                <select id="agenda-professional">
+                                    <option value="all">Todos</option>
+                                </select>
+                            </label>
 
                             <button type="button" id="previous-day">
                                 ←

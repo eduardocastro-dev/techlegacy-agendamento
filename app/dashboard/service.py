@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from app.extensions import db
-from app.models import Appointment, Establishment, Service
+from app.models import Appointment, Establishment, Professional, Service
 
 
 def get_dashboard_data(establishment_id):
@@ -33,6 +33,10 @@ def get_dashboard_data(establishment_id):
         .all()
     )
 
+    professionals = Professional.query.filter_by(
+        establishment_id=establishment_id,
+    ).count()
+
     active_services = Service.query.filter_by(
         establishment_id=establishment_id,
         active=True,
@@ -43,4 +47,5 @@ def get_dashboard_data(establishment_id):
         "appointments_today": appointments_today,
         "upcoming_appointments": upcoming_appointments,
         "active_services": active_services,
+        "professionals": professionals,
     }

@@ -13,6 +13,8 @@ let selectedTime = null;
 
 let currentAgendaData = null;
 let selectedServiceDuration = null;
+let allProfessionals = [];
+let selectedProfessionalId = "all";
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -96,6 +98,15 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     loadServices();
+    loadAgendaProfessionals();
+
+    const professionalFilter = document.getElementById("agenda-professional");
+    if (professionalFilter) {
+        professionalFilter.addEventListener("change", () => {
+            selectedProfessionalId = professionalFilter.value;
+            if (currentAgendaData) renderAgenda(currentAgendaData);
+        });
+    }
 
 
     // =========================================================
@@ -346,7 +357,11 @@ async function handleAppointmentSubmit(event) {
                             customerPhone,
 
                         starts_at:
-                            startsAt
+                            startsAt,
+
+                        ...(selectedProfessionalId !== "all"
+                            ? { professional_id: Number(selectedProfessionalId) }
+                            : {})
                     })
                 }
             );
@@ -775,295 +790,88 @@ function renderAgenda(data) {
 */
 
 function renderSlots(data) {
-
-    const container =
-        document.getElementById(
-            "agenda-list"
-        );
-
-
-    const opening =
-        data.schedule.opening_time;
-
-    const closing =
-        data.schedule.closing_time;
-
-
-    const appointments =
-        data.appointments || [];
-
-
-    const slots =
-        generateTimeSlots(
-            opening,
-            closing
-        );
-
-    /*
-     * Mapa de ocupação: cada horário (30 min) que
-     * sobrepõe um agendamento fica marcado.
-     * O primeiro horário do período recebe o card
-     * (isStart) e os demais ficam apenas bloqueados.
-     */
-
+    const container = document.getElementById("agenda-list");
+    const opening = data.schedule.opening_time;
+    const closing = data.schedule.closing_time;
+    const selectedAppointments = (data.appointments || []).filter((appointment) => {
+        const status = String(appointment.status || "").toLowerCase();
+        if (["cancelled", "canceled"].includes(status)) return false;
+        return selectedProfessionalId === "all" ||
+            String(appointment.professional_id || "") === selectedProfessionalId;
+    });
+    const slots = generateTimeSlots(opening, closing);
     const SLOT_MINUTES = 30;
-
     const occupancyMap = {};
 
-    appointments.forEach(
-        appointment => {
+    // Cada horário guarda uma lista: profissionais diferentes podem atender
+    // clientes em paralelo sem que um agendamento sobrescreva o outro.
+    selectedAppointments.forEach((appointment) => {
+        if (!appointment.starts_at || !appointment.ends_at) return;
+        const startMinutes = timeToMinutes(appointment.starts_at.split("T")[1].slice(0, 5));
+        const endMinutes = timeToMinutes(appointment.ends_at.split("T")[1].slice(0, 5));
+        const covered = slots.filter((slotTime) => {
+            const slotStart = timeToMinutes(slotTime);
+            return slotStart < endMinutes && slotStart + SLOT_MINUTES > startMinutes;
+        });
+        covered.forEach((slotTime, index) => {
+            if (!occupancyMap[slotTime]) occupancyMap[slotTime] = { appointments: [], coveredBy: [] };
+            if (index === 0) occupancyMap[slotTime].appointments.push(appointment);
+            else occupancyMap[slotTime].coveredBy.push(appointment);
+        });
+    });
 
-            const startMinutes =
-                timeToMinutes(
-                    appointment.starts_at
-                        .split("T")[1]
-                        .slice(0, 5)
-                );
+    container.innerHTML = "";
+    slots.forEach((time) => {
+        const occupancy = occupancyMap[time];
+        const appointments = occupancy ? occupancy.appointments : [];
+        const isCovered = occupancy && occupancy.coveredBy.length > 0;
+        const slot = document.createElement("div");
+        slot.className = "agenda-slot";
+        slot.dataset.time = time;
+        const timeElement = document.createElement("div");
+        timeElement.className = "agenda-time";
+        timeElement.textContent = time;
+        const content = document.createElement("div");
+        content.className = "agenda-content";
 
-            const endMinutes =
-                timeToMinutes(
-                    appointment.ends_at
-                        .split("T")[1]
-                        .slice(0, 5)
-                );
-
-            const covered =
-                slots.filter(
-                    slotTime => {
-
-                        const slotStart =
-                            timeToMinutes(slotTime);
-
-                        return (
-                            slotStart < endMinutes &&
-                            slotStart + SLOT_MINUTES > startMinutes
-                        );
-                    }
-                );
-
-            covered.forEach(
-                (slotTime, index) => {
-
-                    occupancyMap[slotTime] = {
-                        appointment,
-                        isStart: index === 0,
-                        span: covered.length
-                    };
-                }
-            );
-        }
-    );
-
-
-
-    container.innerHTML =
-        "";
-
-
-    slots.forEach(
-        time => {
-
-            const occupancy =
-                occupancyMap[time];
-
-            const appointment =
-                occupancy && occupancy.isStart
-                    ? occupancy.appointment
-                    : null;
-
-            const isCovered =
-                occupancy && !occupancy.isStart;
-
-
-
-            const slot =
-                document.createElement(
-                    "div"
-                );
-
-
-            slot.className =
-                "agenda-slot";
-
-
-            slot.dataset.time =
-                time;
-
-
-            const timeElement =
-                document.createElement(
-                    "div"
-                );
-
-
-            timeElement.className =
-                "agenda-time";
-
-
-            timeElement.textContent =
-                time;
-
-
-            const content =
-                document.createElement(
-                    "div"
-                );
-
-
-            content.className =
-                "agenda-content";
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Horário ocupado
-            |--------------------------------------------------------------------------
-            */
-
-            if (appointment) {
-
-                const card =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                card.className =
-                    "appointment-card";
-
-                card.style.setProperty(
-                    "--slots",
-                    occupancy.span
-                );
-
-                slot.classList.add(
-                    "occupied"
-                );
-
-
-
-                const endTime =
-                    appointment.ends_at
-                        .split("T")[1]
-                        .slice(0, 5);
-
-
-                const customerPhone = formatPhone(
-                    appointment.customer_phone ||
-                    appointment.phone ||
-                    ""
-                );
-
-
+        if (appointments.length) {
+            slot.classList.add("occupied");
+            const cards = document.createElement("div");
+            cards.className = "appointment-cards";
+            appointments.forEach((appointment) => {
+                const card = document.createElement("div");
+                card.className = "appointment-card";
+                const startTime = appointment.starts_at.split("T")[1].slice(0, 5);
+                const endTime = appointment.ends_at.split("T")[1].slice(0, 5);
+                const phone = formatPhone(appointment.customer_phone || appointment.phone || "");
+                const professional = appointment.professional_name || "Profissional não definido";
                 card.innerHTML = `
                     <strong>${escapeHtml(appointment.customer_name)}</strong>
-
-                    ${customerPhone
-                        ? `<span class="appointment-phone">${escapeHtml(customerPhone)}</span>`
-                        : ""}
-
+                    ${phone ? `<span class="appointment-phone">${escapeHtml(phone)}</span>` : ""}
                     <div class="appointment-meta">
-                        <span class="appointment-service">${escapeHtml(
-                            appointment.service_name || "Serviço"
-                        )}</span>
-
-                        <span class="appointment-time">${time} — ${endTime}</span>
+                        <span class="appointment-service">${escapeHtml(appointment.service_name || "Serviço")}</span>
+                        <span class="appointment-time">${startTime} — ${endTime}</span>
                     </div>
+                    <span class="appointment-professional">${escapeHtml(professional)}</span>
                 `;
-
-
-                content.appendChild(
-                    card
-                );
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Horário disponível
-                |--------------------------------------------------------------------------
-                */
-
-            } else if (isCovered) {
-
-                /*
-                 * Horário dentro de um agendamento:
-                 * bloqueado, sem clique.
-                 */
-
-                slot.classList.add(
-                    "occupied"
-                );
-
-            } else {
-
-                slot.classList.add(
-                    "available"
-                );
-
-
-
-                content.textContent =
-                    "Horário disponível";
-
-
-                slot.addEventListener(
-                    "click",
-                    () => {
-
-                        /*
-                         * Impede abrir o modal
-                         * quando o serviço selecionado
-                         * não comportar esse horário.
-                         */
-
-                        if (
-                            slot.classList.contains(
-                                "unavailable"
-                            )
-                        ) {
-                            return;
-                        }
-
-
-                        openAppointmentModal(
-                            data.date,
-                            time
-                        );
-
-                    }
-                );
-            }
-
-
-            slot.appendChild(
-                timeElement
-            );
-
-
-            slot.appendChild(
-                content
-            );
-
-
-            container.appendChild(
-                slot
-            );
+                cards.appendChild(card);
+            });
+            content.appendChild(cards);
+        } else if (isCovered) {
+            slot.classList.add("occupied");
+        } else {
+            slot.classList.add("available");
+            content.textContent = "Horário disponível";
+            slot.addEventListener("click", () => {
+                if (!slot.classList.contains("unavailable")) openAppointmentModal(data.date, time);
+            });
         }
-    );
-
-
-    /*
-     * Caso exista um serviço selecionado,
-     * reaplica a validação.
-     */
-
-    if (selectedServiceDuration) {
-
-        updateSlotAvailability();
-
-    }
+        slot.appendChild(timeElement);
+        slot.appendChild(content);
+        container.appendChild(slot);
+    });
+    if (selectedServiceDuration) updateSlotAvailability();
 }
-
 
 /*
 |--------------------------------------------------------------------------
@@ -1229,8 +1037,12 @@ function isSlotAvailableForDuration(
      */
 
     const appointments =
-        currentAgendaData.appointments ||
-        [];
+        (currentAgendaData.appointments || []).filter((appointment) => {
+            const status = String(appointment.status || "").toLowerCase();
+            if (["cancelled", "canceled"].includes(status)) return false;
+            return selectedProfessionalId === "all" ||
+                String(appointment.professional_id || "") === selectedProfessionalId;
+        });
 
 
     for (
@@ -1603,6 +1415,35 @@ function escapeHtml(value) {
 | Carregar serviços
 |--------------------------------------------------------------------------
 */
+
+async function loadAgendaProfessionals() {
+    const select = document.getElementById("agenda-professional");
+    if (!select) return;
+    const token = sessionStorage.getItem("access_token");
+    if (!token) return;
+    try {
+        const response = await fetch("/professionals", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.status === 401) {
+            sessionStorage.removeItem("access_token");
+            window.location.href = "/login";
+            return;
+        }
+        if (!response.ok) throw new Error("Não foi possível carregar profissionais.");
+        allProfessionals = await response.json();
+        select.innerHTML = '<option value="all">Todos os profissionais</option>';
+        allProfessionals.filter((person) => person.active).forEach((person) => {
+            const option = document.createElement("option");
+            option.value = String(person.id);
+            option.textContent = person.name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 
 async function loadServices() {
 

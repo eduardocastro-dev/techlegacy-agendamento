@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from flask import Blueprint, abort, jsonify, render_template, request
 
+from app.core.availability import get_available_slots
 from app.extensions import db
 from app.models import Appointment
 
@@ -28,6 +29,7 @@ def public_booking(slug):
         "public/agendamento.html",
         establishment=public_data["establishment"],
         services=public_data["services"],
+        service_professionals=public_data["service_professionals"],
     )
 
 
@@ -35,6 +37,7 @@ def public_booking(slug):
 def public_availability(slug):
     service_id_param = request.args.get("service_id")
     date_param = request.args.get("date")
+    professional_id_param = request.args.get("professional_id")
 
     if not service_id_param:
         return jsonify({"error": "O parâmetro service_id é obrigatório."}), 400
@@ -49,6 +52,15 @@ def public_availability(slug):
     except ValueError:
         return jsonify({"error": "service_id inválido."}), 400
 
+    professional_id = None
+    if professional_id_param:
+        try:
+            professional_id = int(professional_id_param)
+            if professional_id <= 0:
+                raise ValueError
+        except ValueError:
+            return jsonify({"error": "professional_id inválido."}), 400
+
     try:
         target_date = datetime.strptime(date_param, "%Y-%m-%d").date()
     except ValueError:
@@ -58,6 +70,7 @@ def public_availability(slug):
         slug=slug,
         service_id=service_id,
         target_date=target_date,
+        professional_id=professional_id,
     )
 
     if not availability:
@@ -71,6 +84,18 @@ def public_availability(slug):
                 "name": availability["service"].name,
                 "duration_minutes": availability["service"].duration_minutes,
             },
+            "professional": (
+                {
+                    "id": availability["professional"].id,
+                    "name": availability["professional"].name,
+                }
+                if availability["professional"]
+                else None
+            ),
+            "professionals": [
+                {"id": professional.id, "name": professional.name}
+                for professional in availability["professionals"]
+            ],
             "slots": [slot.strftime("%H:%M") for slot in availability["slots"]],
         }
     )
@@ -114,6 +139,15 @@ def confirm_public_booking(slug):
     except (ValueError, TypeError):
         return jsonify({"error": "Serviço inválido."}), 400
 
+    professional_id = None
+    if data.get("professional_id") not in (None, ""):
+        try:
+            professional_id = int(data["professional_id"])
+            if professional_id <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            return jsonify({"error": "Profissional inválido."}), 400
+
     try:
         target_date = datetime.strptime(str(data["date"]), "%Y-%m-%d").date()
         selected_time = datetime.strptime(str(data["time"]), "%H:%M").time()
@@ -141,10 +175,34 @@ def confirm_public_booking(slug):
         slug=slug,
         service_id=service_id,
         target_date=target_date,
+        professional_id=professional_id,
     )
 
     if not availability:
         return jsonify({"error": "Estabelecimento ou serviço não encontrado."}), 404
+
+    selected_time_string = selected_time.strftime("%H:%M")
+    assigned_professional_id = professional_id
+    if assigned_professional_id is None and availability["professionals"]:
+        for professional in availability["professionals"]:
+            professional_slots = get_available_slots(
+                establishment_id=availability["establishment"].id,
+                service_id=availability["service"].id,
+                target_date=target_date,
+                professional_id=professional.id,
+            )
+            if selected_time_string in {
+                slot.strftime("%H:%M") for slot in professional_slots
+            }:
+                assigned_professional_id = professional.id
+                break
+        if assigned_professional_id is None:
+            return (
+                jsonify(
+                    {"error": "Esse horário não está mais disponível. Escolha outro."}
+                ),
+                409,
+            )
 
     starts_at = datetime.combine(target_date, selected_time)
 
@@ -162,6 +220,7 @@ def confirm_public_booking(slug):
     appointment = Appointment(
         establishment_id=availability["establishment"].id,
         service_id=availability["service"].id,
+        professional_id=assigned_professional_id,
         customer_name=customer_name,
         customer_phone=customer_phone,
         starts_at=starts_at,
@@ -189,6 +248,14 @@ def confirm_public_booking(slug):
                     "id": appointment.id,
                     "establishment": availability["establishment"].name,
                     "service": availability["service"].name,
+                    "professional": next(
+                        (
+                            p.name
+                            for p in availability["professionals"]
+                            if p.id == assigned_professional_id
+                        ),
+                        None,
+                    ),
                     "date": target_date.isoformat(),
                     "time": selected_time.strftime("%H:%M"),
                     "customer_name": appointment.customer_name,

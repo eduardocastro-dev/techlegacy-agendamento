@@ -10,6 +10,7 @@ from .config import Config
 from .core.errors import APIError
 from .dashboard.routes import dashboard_bp
 from .extensions import db, jwt, migrate
+from .professionals.routes import professionals_bp
 from .schedule_exceptions.routes import schedule_exceptions_bp
 from .schedules.routes import schedules_bp
 from .services.routes import services_bp
@@ -56,6 +57,7 @@ def create_app(test_config=None):
     app.register_blueprint(auth_bp)
     app.register_blueprint(auth_views_bp)
     app.register_blueprint(services_bp)
+    app.register_blueprint(professionals_bp)
     app.register_blueprint(schedules_bp)
     app.register_blueprint(schedule_exceptions_bp)
     app.register_blueprint(appointments_bp)

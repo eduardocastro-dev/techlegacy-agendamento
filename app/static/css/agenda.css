@@ -923,3 +923,87 @@
         transition: none !important;
     }
 }
+
+/* Filtro de agenda por profissional */
+.agenda-professional-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.agenda-professional-filter select {
+    min-width: 150px;
+    height: 40px;
+    padding: 0 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    color: #374151;
+    font: inherit;
+    font-size: 13px;
+}
+
+.appointment-cards {
+    display: grid;
+    gap: 8px;
+}
+
+.appointment-card .appointment-professional {
+    margin-top: 5px;
+    color: #6d28d9;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.agenda-slot.unavailable {
+    cursor: not-allowed;
+    background: #fafafa;
+}
+
+.agenda-slot.unavailable .agenda-content {
+    color: #9ca3af;
+}
+
+@media (max-width: 900px) {
+    .agenda-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .agenda-navigation {
+        flex-wrap: wrap;
+    }
+}
+
+
+/* Exibe o nome completo do cliente nos cards da agenda. */
+.agenda-slot .appointment-card {
+    height: auto;
+    min-height: calc(var(--slots, 1) * 96px - 16px);
+    overflow: visible;
+    z-index: 5;
+}
+
+.agenda-slot .appointment-card strong {
+    display: block;
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    line-height: 1.25;
+}
+
+.agenda-slot .appointment-card .appointment-service {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+}
+
+.agenda-slot .appointment-card .appointment-professional {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}

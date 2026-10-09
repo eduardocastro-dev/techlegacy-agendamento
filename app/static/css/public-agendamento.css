@@ -1174,3 +1174,27 @@ body.modal-open {
         transition: none !important;
     }
 }
+
+/* Seleção de profissional no agendamento público */
+.professional-choice {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: min(100%, 260px);
+    margin-top: 12px;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.professional-choice select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+    font: inherit;
+    font-weight: 400;
+}

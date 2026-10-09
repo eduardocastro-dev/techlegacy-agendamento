@@ -305,6 +305,14 @@ function updateCards(data) {
     }
 
 
+    const totalProfessionals =
+        document.getElementById("total-professionals");
+
+    if (totalProfessionals) {
+        totalProfessionals.textContent =
+            data.summary?.professionals ?? 0;
+    }
+
     const activeServices =
         document.getElementById("active-services");
 

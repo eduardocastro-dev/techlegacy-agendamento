@@ -346,3 +346,34 @@ def test_dashboard_isolates_establishments(
     assert appointment_b_id not in upcoming_ids
 
     assert data["establishment"]["id"] == establishment
+
+
+def test_dashboard_counts_all_registered_professionals(
+    app,
+    client,
+    auth_headers,
+    establishment,
+):
+    from app.models import Professional
+
+    with app.app_context():
+        db.session.add_all(
+            [
+                Professional(
+                    establishment_id=establishment,
+                    name="Profissional ativo",
+                    active=True,
+                ),
+                Professional(
+                    establishment_id=establishment,
+                    name="Profissional desativado",
+                    active=False,
+                ),
+            ]
+        )
+        db.session.commit()
+
+    response = client.get("/dashboard", headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.get_json()["summary"]["professionals"] == 2

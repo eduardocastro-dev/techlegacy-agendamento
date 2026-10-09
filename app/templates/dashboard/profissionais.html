@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profissionais | TechLegacy Agendamento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profissionais.css') }}">
+</head>
+<body>
+<div class="dashboard">
+    <aside class="sidebar">
+        <div class="sidebar-header"><h1>TechLegacy</h1><span>Agendamento</span></div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard/admin" class="nav-item"><span>📊</span><span>Visão geral</span></a>
+            <a href="/dashboard/admin/agenda" class="nav-item"><span>📅</span><span>Agenda</span></a>
+            <a href="/dashboard/admin/profissionais" class="nav-item active"><span>👥</span><span>Profissionais</span></a>
+            <a href="/dashboard/admin/servicos" class="nav-item"><span>📋</span><span>Serviços</span></a>
+            <a href="/dashboard/admin/horarios" class="nav-item"><span>🕐</span><span>Horários</span></a>
+            <a href="/dashboard/admin/configuracoes" class="nav-item"><span>⚙️</span><span>Configurações</span></a>
+        </nav>
+        <div class="sidebar-footer"><button type="button" id="logout-button">Sair</button></div>
+    </aside>
+    <main class="main-content">
+        <header class="topbar"><div><h2>Profissionais</h2><p>Organize a equipe e os serviços de cada profissional.</p></div><div class="user-area"><div class="user-info"><strong>Usuário</strong><span>Administrador</span></div></div></header>
+        <section class="content">
+            <section class="panel professionals-panel">
+                <div class="professionals-header"><div><h2>Equipe do estabelecimento</h2><p>Cadastre profissionais e vincule os serviços que realizam.</p></div><button type="button" id="new-professional-button" class="btn-primary">+ Novo profissional</button></div>
+                <div class="professionals-tabs" role="tablist" aria-label="Filtrar profissionais">
+                    <button type="button" class="professionals-tab active" data-tab="active" role="tab" aria-selected="true">Ativos <span class="tab-count" id="count-active">0</span></button>
+                    <button type="button" class="professionals-tab" data-tab="inactive" role="tab" aria-selected="false">Desativados <span class="tab-count" id="count-inactive">0</span></button>
+                </div>
+                <div id="professionals-list" class="professionals-list"><div class="professionals-loading">Carregando profissionais...</div></div>
+            </section>
+        </section>
+    </main>
+</div>
+<div id="professional-modal" class="professional-modal-overlay hidden">
+    <div class="professional-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header"><div><h3 id="modal-title">Novo profissional</h3><p>Informe o nome e os serviços realizados.</p></div><button type="button" id="close-modal" class="modal-close" aria-label="Fechar">✕</button></div>
+        <form id="professional-form" class="modal-body">
+            <div id="professional-error" class="professional-error hidden" role="alert"></div>
+            <div class="form-group"><label for="professional-name">Nome do profissional</label><input type="text" id="professional-name" maxlength="120" placeholder="Ex.: Ana Souza" required></div>
+            <fieldset class="service-picker"><legend>Serviços realizados</legend><p>Selecione os serviços que este profissional pode atender.</p><div id="professional-services" class="professional-services"><span>Carregando serviços...</span></div></fieldset>
+            <div class="modal-actions"><button type="button" id="cancel-modal" class="btn-secondary">Cancelar</button><button type="submit" id="save-professional" class="btn-primary">Salvar profissional</button></div>
+        </form>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/profissionais.js') }}"></script>
+</body>
+</html>

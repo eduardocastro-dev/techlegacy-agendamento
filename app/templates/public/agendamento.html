@@ -72,7 +72,9 @@
 
                     <article class="service-card" data-service-id="{{ service.id }}"
                         data-service-name="{{ service.name }}" data-service-duration="{{ service.duration_minutes }}"
-                        data-service-price="{{ service.price }}" tabindex="0">
+                        data-service-price="{{ service.price }}"
+                        data-service-professionals='{{ service_professionals.get(service.id, [])|tojson }}'
+                        tabindex="0">
 
                         <div class="service-info">
 
@@ -151,6 +153,13 @@
                     </strong>
 
                 </div>
+
+                <label class="professional-choice" for="booking-professional">
+                    Profissional
+                    <select id="booking-professional" aria-label="Escolha um profissional">
+                        <option value="">Qualquer profissional disponível</option>
+                    </select>
+                </label>
 
                 <button type="button" id="continue-booking" class="continue-button">
                     Continuar
