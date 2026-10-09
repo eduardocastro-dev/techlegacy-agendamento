@@ -14,9 +14,7 @@ def jwt_required_with_user(fn):
         user = get_current_user()
 
         if not user:
-            return jsonify({
-                "error": "Authenticated user not found"
-            }), 401
+            return jsonify({"error": "Authenticated user not found"}), 401
 
         return fn(*args, **kwargs)
 

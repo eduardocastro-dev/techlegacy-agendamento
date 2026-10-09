@@ -49,4 +49,4 @@ class Professional(db.Model):
     )
 
     def __repr__(self):
-        return f"<Professional " f"id={self.id} " f"name={self.name}>"
+        return f"<Professional id={self.id} name={self.name}>"

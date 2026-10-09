@@ -86,4 +86,4 @@ class Appointment(db.Model):
     )
 
     def __repr__(self):
-        return f"<Appointment " f"id={self.id} " f"customer={self.customer_name}>"
+        return f"<Appointment id={self.id} customer={self.customer_name}>"

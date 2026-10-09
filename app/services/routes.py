@@ -4,10 +4,11 @@ from app.auth.context import get_current_establishment_id
 from app.auth.decorators import jwt_required_with_user
 from app.core.errors import APIError
 from app.services.service import (
-    create_service as create_service_record,
+    activate_service,
+    deactivate_service,
 )
 from app.services.service import (
-    deactivate_service,
+    create_service as create_service_record,
 )
 from app.services.service import (
     get_service as get_service_record,
@@ -161,3 +162,14 @@ def delete_service(service_id):
     deactivate_service(service)
 
     return jsonify({"message": "Service deactivated successfully"})
+
+
+@services_bp.patch("/<int:service_id>/activate")
+@jwt_required_with_user
+def activate_service_endpoint(service_id):
+    establishment_id = get_current_establishment_id()
+    service = get_service_record(establishment_id, service_id, include_inactive=True)
+    if not service:
+        raise APIError("Service not found", status_code=404)
+    service = activate_service(service)
+    return jsonify(serialize_service(service))

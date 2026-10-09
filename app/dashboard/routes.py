@@ -52,9 +52,7 @@ def serialize_appointment(appointment):
         "service_name": (appointment.service.name if appointment.service else None),
         "professional_id": appointment.professional_id,
         "professional_name": (
-            appointment.professional.name
-            if appointment.professional
-            else None
+            appointment.professional.name if appointment.professional else None
         ),
         "customer_name": appointment.customer_name,
         "customer_phone": appointment.customer_phone,

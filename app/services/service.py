@@ -36,12 +36,14 @@ def list_services(establishment_id, include_inactive=False):
     return query.order_by(Service.id).all()
 
 
-def get_service(establishment_id, service_id):
-    return Service.query.filter_by(
+def get_service(establishment_id, service_id, include_inactive=False):
+    query = Service.query.filter_by(
         id=service_id,
         establishment_id=establishment_id,
-        active=True,
-    ).first()
+    )
+    if not include_inactive:
+        query = query.filter_by(active=True)
+    return query.first()
 
 
 def update_service(
@@ -70,4 +72,10 @@ def deactivate_service(service):
 
     db.session.commit()
 
+    return service
+
+
+def activate_service(service):
+    service.active = True
+    db.session.commit()
     return service

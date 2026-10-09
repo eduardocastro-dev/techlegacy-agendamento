@@ -288,46 +288,51 @@ function renderServiceCard(service, isActive) {
             );
 
 
-    const actions = isActive
-        ? `
-            <div class="service-actions">
+    const actions = `
+        <div class="service-actions">
+            <button
+                type="button"
+                class="service-action-button"
+                title="Ações"
+                aria-label="Ações do serviço"
+                onclick="toggleServiceMenu(${service.id})"
+            >
+                ⋮
+            </button>
 
-                <button
-                    type="button"
-                    class="service-action-button"
-                    title="Ações"
-                    onclick="toggleServiceMenu(${service.id})"
-                >
-                    ⋮
-                </button>
+            <div
+                id="service-menu-${service.id}"
+                class="service-menu hidden"
+            >
+                ${isActive
+            ? `
+                            <button
+                                type="button"
+                                onclick="editService(${service.id})"
+                            >
+                                ✏️ Editar
+                            </button>
 
-
-                <div
-                    id="service-menu-${service.id}"
-                    class="service-menu hidden"
-                >
-
-                    <button
-                        type="button"
-                        onclick="editService(${service.id})"
-                    >
-                        ✏️ Editar
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="danger"
-                        onclick="deactivateService(${service.id})"
-                    >
-                        🗑️ Desativar
-                    </button>
-
-                </div>
-
+                            <button
+                                type="button"
+                                class="danger"
+                                onclick="deactivateService(${service.id})"
+                            >
+                                🗑️ Desativar
+                            </button>
+                        `
+            : `
+                            <button
+                                type="button"
+                                onclick="activateService(${service.id})"
+                            >
+                                ↻ Reativar
+                            </button>
+                        `
+        }
             </div>
-        `
-        : `<div class="service-actions"></div>`;
+        </div>
+    `;
 
 
     return `
@@ -717,6 +722,38 @@ async function deactivateService(serviceId) {
 
     }
 
+}
+
+
+async function activateService(serviceId) {
+    if (!window.confirm("Deseja reativar este serviço?")) return;
+
+    const token = sessionStorage.getItem("access_token");
+    if (!token) {
+        window.location.href = "/login";
+        return;
+    }
+
+    try {
+        const response = await fetch(`/services/${serviceId}/activate`, {
+            method: "PATCH",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.status === 401) {
+            sessionStorage.removeItem("access_token");
+            window.location.href = "/login";
+            return;
+        }
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            alert(data.error || "Não foi possível reativar o serviço.");
+            return;
+        }
+        await loadServices();
+    } catch (error) {
+        console.error(error);
+        alert("Erro de comunicação com o servidor.");
+    }
 }
 
 

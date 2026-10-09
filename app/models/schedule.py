@@ -54,7 +54,5 @@ class Schedule(db.Model):
 
     def __repr__(self):
         return (
-            f"<Schedule "
-            f"establishment={self.establishment_id} "
-            f"weekday={self.weekday}>"
+            f"<Schedule establishment={self.establishment_id} weekday={self.weekday}>"
         )

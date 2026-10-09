@@ -30,7 +30,7 @@ async function api(url, options = {}) {
     if (!accessToken) { window.location.href = "/login"; throw new Error("Faça login para continuar."); }
     const response = await fetch(url, {
         ...options,
-        headers: { "Authorization": `Bearer ${accessToken}`, ...(options.body ? {"Content-Type":"application/json"} : {}), ...(options.headers || {}) }
+        headers: { "Authorization": `Bearer ${accessToken}`, ...(options.body ? { "Content-Type": "application/json" } : {}), ...(options.headers || {}) }
     });
     if (response.status === 401) {
         sessionStorage.removeItem("access_token"); window.location.href = "/login";
@@ -76,7 +76,7 @@ function renderProfessionals() {
         return;
     }
     $("professionals-list").innerHTML = list.map((person) => {
-        const initials = person.name.trim().split(/\s+/).slice(0,2).map((part) => part[0]).join("").toUpperCase();
+        const initials = person.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
         const services = (person.services || []).length
             ? person.services.map((name) => `<span class="service-chip">${escapeHtml(name)}</span>`).join("")
             : '<span class="service-chip">Nenhum serviço vinculado</span>';
@@ -86,16 +86,38 @@ function renderProfessionals() {
                 <div class="professional-card-title"><strong>${escapeHtml(person.name)}</strong><span class="professional-status ${person.active ? "" : "inactive"}">${person.active ? "Ativo" : "Desativado"}</span></div>
                 <div class="professional-services-list">${services}</div>
                 <div class="professional-actions">
-                    <button type="button" data-action="edit" data-id="${person.id}">Editar</button>
-                    ${person.active ? `<button type="button" class="danger" data-action="deactivate" data-id="${person.id}">Desativar</button>` : `<button type="button" data-action="activate" data-id="${person.id}">Reativar</button>`}
+                    <button type="button" class="professional-action-button" data-menu-toggle="${person.id}" aria-label="Ações do profissional" aria-expanded="false" title="Ações">⋮</button>
+                    <div class="professional-menu hidden" id="professional-menu-${person.id}">
+                        ${person.active ? `<button type="button" data-action="edit" data-id="${person.id}">✏️ Editar</button><button type="button" class="danger" data-action="deactivate" data-id="${person.id}">🗑️ Desativar</button>` : `<button type="button" data-action="activate" data-id="${person.id}">↻ Reativar</button>`}
+                    </div>
                 </div>
             </div>
         </article>`;
     }).join("");
+    $("professionals-list").querySelectorAll("button[data-menu-toggle]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const menu = $("professional-menu-" + button.dataset.menuToggle);
+            const shouldOpen = menu.classList.contains("hidden");
+            closeProfessionalMenus();
+            if (shouldOpen) {
+                menu.classList.remove("hidden");
+                button.setAttribute("aria-expanded", "true");
+            }
+        });
+    });
     $("professionals-list").querySelectorAll("button[data-action]").forEach((button) => {
         button.addEventListener("click", () => handleCardAction(button.dataset.action, Number(button.dataset.id)));
     });
 }
+
+function closeProfessionalMenus() {
+    document.querySelectorAll(".professional-menu").forEach((menu) => menu.classList.add("hidden"));
+    document.querySelectorAll("[data-menu-toggle]").forEach((button) => button.setAttribute("aria-expanded", "false"));
+}
+
+document.addEventListener("click", (event) => {
+    if (!event.target.closest(".professional-actions")) closeProfessionalMenus();
+});
 
 function openCreateModal() {
     editingProfessionalId = null;
@@ -138,7 +160,7 @@ async function handleCardAction(action, id) {
     try {
         await api(`/professionals/${id}`, {
             method: activate ? "PUT" : "DELETE",
-            ...(activate ? { body: JSON.stringify({active:true}) } : {})
+            ...(activate ? { body: JSON.stringify({ active: true }) } : {})
         });
         await loadPageData();
     } catch (error) { window.alert(error.message); }
@@ -164,7 +186,7 @@ async function saveProfessional(event) {
 function closeProfessionalModal() { $("professional-modal").classList.add("hidden"); }
 function showError(message) { $("professional-error").textContent = message; $("professional-error").classList.remove("hidden"); }
 function hideError() { $("professional-error").textContent = ""; $("professional-error").classList.add("hidden"); }
-function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char])); }
+function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char])); }
 
 const logoutButton = document.getElementById("logout-button");
 if (logoutButton) logoutButton.addEventListener("click", () => { sessionStorage.removeItem("access_token"); window.location.href = "/login"; });

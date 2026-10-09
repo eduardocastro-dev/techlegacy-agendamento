@@ -10,22 +10,14 @@ class Establishment(db.Model):
 
     name = db.Column(db.String(120), nullable=False)
 
-    slug = db.Column(
-        db.String(120),
-        unique=True,
-        nullable=False
-    )
+    slug = db.Column(db.String(120), unique=True, nullable=False)
 
     phone = db.Column(db.String(20))
 
-    trial_ends_at = db.Column(
-        db.DateTime(timezone=True)
-    )
+    trial_ends_at = db.Column(db.DateTime(timezone=True))
 
     created_at = db.Column(
-        db.DateTime(timezone=True),
-        server_default=func.now(),
-        nullable=False
+        db.DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
     def __repr__(self):

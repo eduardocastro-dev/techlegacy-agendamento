@@ -86,14 +86,12 @@ def update_settings():
         )
 
     try:
-
         establishment = update_establishment_settings(
             establishment,
             data,
         )
 
     except ValueError as error:
-
         raise APIError(
             str(error),
             status_code=409,
@@ -136,14 +134,12 @@ def update_account():
         )
 
     try:
-
         user = update_user_account(
             user,
             data,
         )
 
     except ValueError as error:
-
         raise APIError(
             str(error),
             status_code=409,

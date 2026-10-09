@@ -8,14 +8,8 @@ from app.models import Establishment, User
 
 @pytest.fixture
 def app():
-    secret_key = (
-        "a3b5cb6beca0faf6952edd282f3498f3"
-        "0c62bb471d50b9e7241cea53c45519a1"
-    )
-    jwt_secret_key = (
-        "fae82c89e3449b41c1bcef68fdb94cd8"
-          "15414abacb2b8afbd4576fec22be24b4"
-    )
+    secret_key = "a3b5cb6beca0faf6952edd282f3498f30c62bb471d50b9e7241cea53c45519a1"
+    jwt_secret_key = "fae82c89e3449b41c1bcef68fdb94cd815414abacb2b8afbd4576fec22be24b4"
 
     app = create_app(
         {

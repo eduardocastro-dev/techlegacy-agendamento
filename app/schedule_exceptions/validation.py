@@ -88,7 +88,7 @@ def validate_schedule_exception_payload(
     if not partial and data.get("closed", False) is False:
         if data.get("opening_time") is None or data.get("closing_time") is None:
             errors["opening_time"] = (
-                "Opening and closing times " "are required when closed is false"
+                "Opening and closing times are required when closed is false"
             )
 
     return errors

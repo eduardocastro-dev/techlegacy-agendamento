@@ -198,7 +198,7 @@ def update_schedule_exception(exception_id):
                 status_code=400,
                 details={
                     "opening_time": (
-                        "Opening and closing times are " "required when closed is false"
+                        "Opening and closing times are required when closed is false"
                     )
                 },
             )
