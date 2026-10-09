@@ -948,23 +948,27 @@ function renderSlots(data) {
                         .slice(0, 5);
 
 
+                const customerPhone = formatPhone(
+                    appointment.customer_phone ||
+                    appointment.phone ||
+                    ""
+                );
+
+
                 card.innerHTML = `
-                    <strong>
-                        ${escapeHtml(
-                    appointment.customer_name
-                )}
-                    </strong>
+                    <strong>${escapeHtml(appointment.customer_name)}</strong>
 
-                    <span>
-                        ${escapeHtml(
-                    appointment.service_name ||
-                    "Serviço"
-                )}
-                    </span>
+                    ${customerPhone
+                        ? `<span class="appointment-phone">${escapeHtml(customerPhone)}</span>`
+                        : ""}
 
-                    <span class="appointment-time">
-                        ${time} — ${endTime}
-                    </span>
+                    <div class="appointment-meta">
+                        <span class="appointment-service">${escapeHtml(
+                            appointment.service_name || "Serviço"
+                        )}</span>
+
+                        <span class="appointment-time">${time} — ${endTime}</span>
+                    </div>
                 `;
 
 
@@ -1557,6 +1561,27 @@ function showMessage(
 |--------------------------------------------------------------------------
 */
 
+function formatPhone(value) {
+
+    let digits = String(value ?? "").replace(/\D/g, "");
+
+    // Remove o código do país (55) quando vier junto.
+    if (digits.length >= 12 && digits.startsWith("55")) {
+        digits = digits.slice(2);
+    }
+
+    if (digits.length === 11) {
+        return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    }
+
+    if (digits.length === 10) {
+        return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    }
+
+    return value ? String(value) : "";
+}
+
+
 function escapeHtml(value) {
 
     const div =
@@ -1678,4 +1703,21 @@ async function loadServices() {
             </option>
         `;
     }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Sair
+|--------------------------------------------------------------------------
+*/
+
+const logoutButton = document.getElementById("logout-button");
+
+if (logoutButton) {
+    logoutButton.addEventListener("click", () => {
+        sessionStorage.removeItem("access_token");
+
+        window.location.href = "/login";
+    });
 }

@@ -9,6 +9,10 @@ let servicePriceInput;
 
 let editingServiceId = null;
 
+let allServices = [];
+
+let currentTab = "active";
+
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -71,6 +75,18 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
+    document
+        .querySelectorAll(".services-tab")
+        .forEach(tab => {
+
+            tab.addEventListener(
+                "click",
+                () => setActiveTab(tab.dataset.tab)
+            );
+
+        });
+
+
     loadServices();
 
 });
@@ -94,7 +110,7 @@ async function loadServices() {
     try {
 
         const response = await fetch(
-            "/services",
+            "/services?include_inactive=true",
             {
                 headers: {
                     "Authorization":
@@ -131,7 +147,9 @@ async function loadServices() {
         }
 
 
-        renderServices(data);
+        allServices = Array.isArray(data) ? data : [];
+
+        renderServices();
 
 
     } catch (error) {
@@ -149,120 +167,209 @@ async function loadServices() {
 }
 
 
-function renderServices(services) {
+function isServiceActive(service) {
+
+    const value =
+        service.is_active ?? service.active;
+
+    return value === undefined || value === null
+        ? true
+        : Boolean(value);
+
+}
+
+
+function setActiveTab(tab) {
+
+    currentTab = tab;
+
+    document
+        .querySelectorAll(".services-tab")
+        .forEach(button => {
+
+            const isActive =
+                button.dataset.tab === tab;
+
+            button.classList.toggle(
+                "active",
+                isActive
+            );
+
+            button.setAttribute(
+                "aria-selected",
+                String(isActive)
+            );
+
+        });
+
+    renderServices();
+
+}
+
+
+function renderServices() {
 
     const servicesList =
         document.getElementById("services-list");
 
 
+    const activeServices =
+        allServices.filter(isServiceActive);
+
+    const inactiveServices =
+        allServices.filter(
+            service => !isServiceActive(service)
+        );
+
+
+    document.getElementById(
+        "count-active"
+    ).textContent = activeServices.length;
+
+    document.getElementById(
+        "count-inactive"
+    ).textContent = inactiveServices.length;
+
+
+    const showingActive =
+        currentTab === "active";
+
+    const services =
+        showingActive
+            ? activeServices
+            : inactiveServices;
+
+
     if (!services.length) {
 
-        servicesList.innerHTML = `
-            <div class="services-empty">
-                <strong>Nenhum serviço cadastrado.</strong>
-                Cadastre seu primeiro serviço para começar.
-            </div>
-        `;
+        servicesList.innerHTML = showingActive
+            ? `
+                <div class="services-empty">
+                    <strong>Nenhum serviço ativo.</strong>
+                    Cadastre um serviço para começar.
+                </div>
+            `
+            : `
+                <div class="services-empty">
+                    <strong>Nenhum serviço desativado.</strong>
+                    Os serviços que você desativar aparecerão aqui.
+                </div>
+            `;
 
         return;
     }
 
 
-    servicesList.innerHTML = services
-        .map(service => {
+    servicesList.innerHTML = `
+        <div class="services-columns">
+            <span>Serviço</span>
+            <span>Duração</span>
+            <span>Preço</span>
+            <span>Status</span>
+            <span></span>
+        </div>
+    ` + services
+            .map(service => renderServiceCard(service, showingActive))
+            .join("");
 
-            const price =
-                Number(service.price)
-                    .toLocaleString(
-                        "pt-BR",
-                        {
-                            style: "currency",
-                            currency: "BRL"
-                        }
-                    );
+}
 
 
-            return `
+function renderServiceCard(service, isActive) {
+
+    const price =
+        Number(service.price)
+            .toLocaleString(
+                "pt-BR",
+                {
+                    style: "currency",
+                    currency: "BRL"
+                }
+            );
+
+
+    const actions = isActive
+        ? `
+            <div class="service-actions">
+
+                <button
+                    type="button"
+                    class="service-action-button"
+                    title="Ações"
+                    onclick="toggleServiceMenu(${service.id})"
+                >
+                    ⋮
+                </button>
+
+
                 <div
-                    class="service-card"
-                    data-service-id="${service.id}"
+                    id="service-menu-${service.id}"
+                    class="service-menu hidden"
                 >
 
-                    <div class="service-info">
-
-                        <h3>
-                            ${escapeHtml(service.name)}
-                        </h3>
-
-                        <p>
-                            ${service.description
-                    ? escapeHtml(
-                        service.description
-                    )
-                    : "Sem descrição"
-                }
-                        </p>
-
-                    </div>
+                    <button
+                        type="button"
+                        onclick="editService(${service.id})"
+                    >
+                        ✏️ Editar
+                    </button>
 
 
-                    <div class="service-duration">
-                        ${service.duration_minutes} min
-                    </div>
-
-
-                    <div class="service-price">
-                        ${price}
-                    </div>
-
-
-                    <div class="service-status">
-                        Ativo
-                    </div>
-
-
-                    <div class="service-actions">
-
-                        <button
-                            type="button"
-                            class="service-action-button"
-                            title="Ações"
-                            onclick="toggleServiceMenu(${service.id})"
-                        >
-                            ⋮
-                        </button>
-
-
-                        <div
-                            id="service-menu-${service.id}"
-                            class="service-menu hidden"
-                        >
-
-                            <button
-                                type="button"
-                                onclick="editService(${service.id})"
-                            >
-                                ✏️ Editar
-                            </button>
-
-
-                            <button
-                                type="button"
-                                class="danger"
-                                onclick="deactivateService(${service.id})"
-                            >
-                                🗑️ Desativar
-                            </button>
-
-                        </div>
-
-                    </div>
+                    <button
+                        type="button"
+                        class="danger"
+                        onclick="deactivateService(${service.id})"
+                    >
+                        🗑️ Desativar
+                    </button>
 
                 </div>
-            `;
 
-        })
-        .join("");
+            </div>
+        `
+        : `<div class="service-actions"></div>`;
+
+
+    return `
+        <div
+            class="service-card${isActive ? "" : " inactive"}"
+            data-service-id="${service.id}"
+        >
+
+            <div class="service-info">
+
+                <h3>
+                    ${escapeHtml(service.name)}
+                </h3>
+
+                <p>
+                    ${service.description
+            ? escapeHtml(service.description)
+            : "Sem descrição"}
+                </p>
+
+            </div>
+
+
+            <div class="service-duration">
+                ${service.duration_minutes} min
+            </div>
+
+
+            <div class="service-price">
+                ${price}
+            </div>
+
+
+            <div class="service-status">
+                ${isActive ? "Ativo" : "Desativado"}
+            </div>
+
+
+            ${actions}
+
+        </div>
+    `;
 
 }
 
@@ -725,3 +832,16 @@ document.addEventListener(
 
     }
 );
+
+
+/* Sair */
+
+const logoutButton = document.getElementById("logout-button");
+
+if (logoutButton) {
+    logoutButton.addEventListener("click", () => {
+        sessionStorage.removeItem("access_token");
+
+        window.location.href = "/login";
+    });
+}

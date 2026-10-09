@@ -24,11 +24,16 @@ def create_service(
     return service
 
 
-def list_services(establishment_id):
-    return Service.query.filter_by(
+def list_services(establishment_id, include_inactive=False):
+    query = Service.query.filter_by(
         establishment_id=establishment_id,
-        active=True,
-    ).all()
+    )
+
+    # Por padrão só os ativos (ex.: página pública de agendamento).
+    if not include_inactive:
+        query = query.filter_by(active=True)
+
+    return query.order_by(Service.id).all()
 
 
 def get_service(establishment_id, service_id):

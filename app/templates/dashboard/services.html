@@ -36,7 +36,7 @@
                 </a>
 
                 <a href="/dashboard/admin/servicos" class="nav-item active">
-                    <span>✂️</span>
+                    <span>📋</span>
                     <span>Serviços</span>
                 </a>
 
@@ -53,7 +53,7 @@
             </nav>
 
             <div class="sidebar-footer">
-                <button type="button">
+                <button type="button" id="logout-button">
                     Sair
                 </button>
             </div>
@@ -94,6 +94,19 @@
 
                         <button type="button" id="new-service-button" class="btn-primary">
                             + Novo serviço
+                        </button>
+
+                    </div>
+
+                    <div class="services-tabs" role="tablist" aria-label="Filtrar serviços">
+
+                        <button type="button" class="services-tab active" data-tab="active" role="tab"
+                            aria-selected="true">
+                            Ativos <span class="tab-count" id="count-active">0</span>
+                        </button>
+
+                        <button type="button" class="services-tab" data-tab="inactive" role="tab" aria-selected="false">
+                            Desativados <span class="tab-count" id="count-inactive">0</span>
                         </button>
 
                     </div>

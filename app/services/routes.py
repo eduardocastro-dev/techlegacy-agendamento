@@ -63,7 +63,16 @@ def create_service():
 def list_services():
     establishment_id = get_current_establishment_id()
 
-    services = list_service_records(establishment_id)
+    include_inactive = request.args.get("include_inactive", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
+    services = list_service_records(
+        establishment_id,
+        include_inactive=include_inactive,
+    )
 
     return jsonify([serialize_service(service) for service in services])
 
