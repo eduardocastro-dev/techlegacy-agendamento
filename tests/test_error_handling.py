@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from flask import abort
 from werkzeug.exceptions import BadRequest
 
 from app.core.errors import APIError
@@ -73,3 +74,42 @@ def test_method_not_allowed_returns_generic_response(client):
 
     assert response.status_code == 405
     assert response.get_json() == {"error": "Method not allowed"}
+
+
+def test_not_found_returns_generic_response(client):
+    response = client.get("/rota-inexistente-123456")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "Resource not found"}
+
+
+def test_explicit_internal_error_is_logged(app, client):
+    app.config["PROPAGATE_EXCEPTIONS"] = False
+
+    def raise_internal_error():
+        abort(500)
+
+    app.add_url_rule(
+        "/_test/explicit-internal-error",
+        endpoint="test_explicit_internal_error",
+        view_func=raise_internal_error,
+    )
+
+    with patch.object(
+        app.logger,
+        "error",
+        wraps=app.logger.error,
+    ) as log_error:
+        response = client.get("/_test/explicit-internal-error")
+
+    assert response.status_code == 500
+    assert response.get_json() == {"error": "Internal server error"}
+
+    log_error.assert_called_once()
+
+
+def test_unauthenticated_admin_request_returns_401(client):
+    response = client.get("/services")
+
+    assert response.status_code == 401
+    assert "error" in response.get_json()

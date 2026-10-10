@@ -289,9 +289,9 @@ A primeira versão está sendo desenvolvida como um ****monólito modular****, m
 
 ## Fase 7 — Qualidade e Segurança
 
-- [ ] Lint
+- [x] Lint
 
-- [ ] Padronização de código
+- [x] Padronização de código
 
 - [ ] Logging
 

@@ -9,7 +9,7 @@ from .auth.routes import auth_bp
 from .config import Config
 from .core.errors import APIError
 from .dashboard.routes import dashboard_bp
-from .extensions import db, jwt, migrate
+from .extensions import db, jwt, limiter, migrate
 from .professionals.routes import professionals_bp
 from .schedule_exceptions.routes import schedule_exceptions_bp
 from .schedules.routes import schedules_bp
@@ -53,6 +53,7 @@ def create_app(test_config=None):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    limiter.init_app(app)
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(auth_views_bp)
@@ -64,6 +65,26 @@ def create_app(test_config=None):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(public_bp)
+
+    @jwt.unauthorized_loader
+    def handle_missing_token(reason):
+        return jsonify({"error": reason}), 401
+
+    @jwt.invalid_token_loader
+    def handle_invalid_token(reason):
+        return jsonify({"error": "Invalid authentication token"}), 422
+
+    @jwt.expired_token_loader
+    def handle_expired_token(jwt_header, jwt_payload):
+        return jsonify({"error": "Authentication token expired"}), 401
+
+    @jwt.revoked_token_loader
+    def handle_revoked_token(jwt_header, jwt_payload):
+        return jsonify({"error": "Authentication token revoked"}), 401
+
+    @jwt.needs_fresh_token_loader
+    def handle_non_fresh_token(jwt_header, jwt_payload):
+        return jsonify({"error": "Fresh authentication required"}), 401
 
     @app.errorhandler(APIError)
     def handle_api_error(error):
@@ -90,10 +111,20 @@ def create_app(test_config=None):
     def health():
         return {"status": "ok", "message": "TechLegacy Agendamento API is running"}
 
+    @app.errorhandler(429)
+    def handle_rate_limit(error):
+        return jsonify({"error": "Too many requests. Please try again later."}), 429
+
     @app.errorhandler(500)
     def handle_internal_server_error(error):
-        if error.original_exception is None:
-            app.logger.error("Erro interno HTTP 500.")
+        original_exception = getattr(
+            error,
+            "original_exception",
+            None,
+        )
+
+        if original_exception is None:
+            app.logger.error("Erro HTTP 500 identificado na aplicação.")
 
         return jsonify({"error": "Internal server error"}), 500
 

@@ -1,9 +1,26 @@
+import logging
 import os
 from logging.config import dictConfig
 
+VALID_LOG_LEVELS = {
+    "DEBUG",
+    "INFO",
+    "WARNING",
+    "ERROR",
+    "CRITICAL",
+}
+
 
 def configure_logging():
-    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    """Configura o logging da aplicação."""
+
+    log_level = os.getenv("LOG_LEVEL", "INFO").strip().upper()
+
+    if log_level not in VALID_LOG_LEVELS:
+        raise ValueError(
+            f"LOG_LEVEL inválido: {log_level}. "
+            f"Valores aceitos: {', '.join(sorted(VALID_LOG_LEVELS))}"
+        )
 
     dictConfig(
         {
@@ -12,18 +29,24 @@ def configure_logging():
             "formatters": {
                 "standard": {
                     "format": ("%(asctime)s | %(levelname)s | %(name)s | %(message)s"),
-                },
+                    "datefmt": "%Y-%m-%d %H:%M:%S",
+                }
             },
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
                     "stream": "ext://sys.stdout",
                     "formatter": "standard",
-                },
+                }
             },
             "root": {
                 "level": log_level,
                 "handlers": ["console"],
             },
         }
+    )
+
+    logging.getLogger(__name__).info(
+        "Logging configurado. Nível: %s",
+        log_level,
     )

@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import Establishment, User
 
 from .validation import (
@@ -20,6 +20,7 @@ auth_bp = Blueprint(
 
 
 @auth_bp.post("/register")
+@limiter.limit("3 per hour")
 def register():
     data = request.get_json(silent=True)
 
@@ -86,6 +87,7 @@ def register():
 
 
 @auth_bp.post("/login")
+@limiter.limit("5 per minute")
 def login():
     data = request.get_json(silent=True)
 
