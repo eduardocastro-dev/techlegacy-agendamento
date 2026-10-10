@@ -293,17 +293,17 @@ A primeira versão está sendo desenvolvida como um ****monólito modular****, m
 
 - [x] Padronização de código
 
-- [ ] Logging
+- [x] Logging
 
-- [ ] Revisão de segurança
+- [x] Revisão de segurança
 
-- [ ] Testes de integração
+- [x] Testes de integração
 
-- [ ] Testes de cenários críticos
+- [x] Testes de cenários críticos
 
-- [ ] Rate limiting
+- [x] Rate limiting
 
-- [ ] Melhorias no tratamento de erros
+- [x] Melhorias no tratamento de erros
 
 ## Fase 8 — CI/CD e Automação de Pipeline
 
